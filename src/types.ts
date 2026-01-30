@@ -20,12 +20,6 @@ export enum MaskType {
   BUFF_SPEED = 'BUFF_SPEED'
 }
 
-export enum GameScene {
-  INTRO = 'INTRO',
-  GAME = 'GAME',
-  GAMEOVER = 'GAMEOVER'
-}
-
 export interface GameStats {
   blueDamageDealt: number;
   redDamageDealt: number;

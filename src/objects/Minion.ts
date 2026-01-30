@@ -1,11 +1,11 @@
-
-import { GameObject, Projectile } from './GameObject';
+import Phaser from 'phaser';
+import { MinionType, Lane, Position, MaskType, getMinionIcon } from '../types';
+import { audio } from '../audioService';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
+import { Projectile, ProjectileTarget } from './Projectile';
 import { Tower } from './Tower';
-import { MinionType, Lane, Position, MaskType } from './types';
-import { audio } from './audioService';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
 
-export class Minion extends GameObject {
+export class Minion extends Phaser.GameObjects.Container {
   public hp = 0;
   public maxHp = 0;
   public damage = 0;
@@ -20,14 +20,36 @@ export class Minion extends GameObject {
   public cooldown = 0;
   public hasMask = false;
   public deathTimer = 0;
+  public radius = 14;
 
-  constructor(x: number, y: number, side: 'Blue' | 'Red', type: MinionType, lane: Lane) {
-    super(x, y, 14, side === 'Blue' ? '#60a5fa' : '#f87171');
+  private bodyGfx: Phaser.GameObjects.Graphics;
+  private hpBarGfx: Phaser.GameObjects.Graphics;
+  private iconText: Phaser.GameObjects.Text;
+  private dying = false;
+
+  constructor(scene: Phaser.Scene, x: number, y: number, side: 'Blue' | 'Red', type: MinionType, lane: Lane) {
+    super(scene, x, y);
     this.side = side;
     this.type = type;
     this.lane = lane;
+
+    this.bodyGfx = scene.add.graphics();
+    this.add(this.bodyGfx);
+
+    this.iconText = scene.add.text(0, 0, getMinionIcon(type), {
+      fontSize: '18px',
+      fontFamily: 'serif',
+    }).setOrigin(0.5);
+    this.add(this.iconText);
+
+    this.hpBarGfx = scene.add.graphics();
+    this.add(this.hpBarGfx);
+
+    this.setDepth(30);
     this.initStats(type);
     this.initWaypoints();
+    this.redraw();
+    scene.add.existing(this);
   }
 
   initWaypoints() {
@@ -49,6 +71,7 @@ export class Minion extends GameObject {
 
   initStats(type: MinionType) {
     this.type = type;
+    this.iconText?.setText(getMinionIcon(type));
     switch (type) {
       case MinionType.FIGHTER:
         this.hp = this.maxHp = 80;
@@ -81,13 +104,15 @@ export class Minion extends GameObject {
       case MaskType.BUFF_DAMAGE: this.damage += 10; break;
       case MaskType.BUFF_SPEED: this.speed *= 1.4; break;
     }
+    this.redraw();
   }
 
-  update(enemies: (Minion | Tower)[], projectiles: Projectile[], addDmg: (side: string, dmg: number) => void) {
+  updateMinion(enemies: (Minion | Tower)[], projectiles: Projectile[], addDmg: (side: string, dmg: number) => void) {
     if (this.hp <= 0) {
       if (this.active) {
         this.active = false;
         audio.playDeath();
+        this.startDeathAnim();
       }
       return;
     }
@@ -124,11 +149,15 @@ export class Minion extends GameObject {
         this.currentWaypointIndex++;
       }
 
-      const vx = (dx / dist) * this.speed;
-      const vy = (dy / dist) * this.speed;
-      this.x += vx;
-      this.y += vy;
+      if (dist > 0.1) {
+        const vx = (dx / dist) * this.speed;
+        const vy = (dy / dist) * this.speed;
+        this.x += vx;
+        this.y += vy;
+      }
     }
+
+    this.redraw();
   }
 
   attack(target: Minion | Tower, projectiles: Projectile[], addDmg: (side: string, dmg: number) => void) {
@@ -147,10 +176,54 @@ export class Minion extends GameObject {
     } else {
       const color = this.type === MinionType.MAGE ? '#d8b4fe' : '#fef08a';
       if (this.type === MinionType.MAGE) audio.playSpell(); else audio.playArrow();
-      projectiles.push(new Projectile(this.x, this.y, target, finalDmg, color, () => {
+      projectiles.push(new Projectile(this.scene!, this.x, this.y, target as unknown as ProjectileTarget, finalDmg, color, () => {
         target.hp -= finalDmg;
         addDmg(this.side, finalDmg);
       }));
+    }
+  }
+
+  private startDeathAnim() {
+    if (this.dying) return;
+    this.dying = true;
+    this.scene?.tweens.add({
+      targets: this,
+      alpha: 0,
+      duration: 500,
+      onComplete: () => {
+        this.destroy();
+      },
+    });
+  }
+
+  redraw() {
+    this.bodyGfx.clear();
+    this.hpBarGfx.clear();
+
+    const r = this.radius;
+    const bodyColor = this.side === 'Blue' ? 0x60a5fa : 0xf87171;
+
+    // Shadow
+    this.bodyGfx.fillStyle(0x000000, 0.3);
+    this.bodyGfx.fillEllipse(0, r - 2, r * 1.6, 8);
+
+    // Body circle
+    this.bodyGfx.fillStyle(bodyColor, 1);
+    this.bodyGfx.fillCircle(0, 0, r);
+
+    // Stroke
+    const strokeColor = this.hasMask ? 0xfacc15 : 0xffffff;
+    const strokeWidth = this.hasMask ? 3 : 1.5;
+    this.bodyGfx.lineStyle(strokeWidth, strokeColor, 1);
+    this.bodyGfx.strokeCircle(0, 0, r);
+
+    // HP bar (only if active)
+    if (this.active) {
+      this.hpBarGfx.fillStyle(0x0f172a, 1);
+      this.hpBarGfx.fillRect(-15, -25, 30, 5);
+      const hpColor = this.side === 'Blue' ? 0x60a5fa : 0xf87171;
+      this.hpBarGfx.fillStyle(hpColor, 1);
+      this.hpBarGfx.fillRect(-15, -25, 30 * (this.hp / this.maxHp), 5);
     }
   }
 }
