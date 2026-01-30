@@ -2,9 +2,9 @@
 import { MinionType, MaskType, Position, GameStats } from './types';
 import { audio } from './audioService';
 
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 800;
-const PATH_WIDTH = 220; 
+export const CANVAS_WIDTH = 1200;
+export const CANVAS_HEIGHT = 800;
+export const PATH_WIDTH = 220; 
 
 class GameObject {
   constructor(public x: number, public y: number, public radius: number, public color: string) {}
@@ -38,15 +38,15 @@ export class Mask extends GameObject {
 }
 
 export class Tower extends GameObject {
-  public hp = 150;
-  public maxHp = 150;
+  public hp = 180;
+  public maxHp = 180;
   public damage = 8;
   public range = 180;
   public cooldown = 0;
   public side: 'Blue' | 'Red';
 
   constructor(x: number, y: number, side: 'Blue' | 'Red') {
-    super(x, y, 30, side === 'Blue' ? '#4444ff' : '#ff4444');
+    super(x, y, 30, side === 'Blue' ? '#1e40af' : '#991b1b');
     this.side = side;
   }
 }
@@ -57,7 +57,7 @@ export class Hero extends GameObject {
   public keys: Record<string, boolean> = {};
 
   constructor(x: number, y: number, public side: 'Blue' | 'Red') {
-    super(x, y, 22, side === 'Blue' ? '#00ccff' : '#ff3333');
+    super(x, y, 22, side === 'Blue' ? '#2563eb' : '#dc2626');
   }
 
   update(minions: Minion[], masks: Mask[], walls: { x1: number; y1: number; x2: number; y2: number }[]) {
@@ -127,7 +127,7 @@ export class Minion extends GameObject {
   public deathTimer = 0;
 
   constructor(x: number, y: number, side: 'Blue' | 'Red', type: MinionType) {
-    super(x, y, 14, side === 'Blue' ? '#6666ff' : '#ff6666');
+    super(x, y, 14, side === 'Blue' ? '#60a5fa' : '#f87171');
     this.side = side;
     this.type = type;
     this.targetPos = side === 'Blue' ? { x: 50, y: 750 } : { x: 1150, y: 50 };
@@ -138,19 +138,22 @@ export class Minion extends GameObject {
     this.type = type;
     switch (type) {
       case MinionType.FIGHTER:
-        this.hp = this.maxHp = 60;
-        this.damage = 12;
+        this.hp = this.maxHp = 70;
+        this.damage = 14;
         this.range = 45;
+        this.speed = 1.3;
         break;
       case MinionType.MAGE:
-        this.hp = this.maxHp = 35;
-        this.damage = 10;
-        this.range = 150;
+        this.hp = this.maxHp = 40;
+        this.damage = 12;
+        this.range = 160;
+        this.speed = 1.1;
         break;
       case MinionType.ARCHER:
-        this.hp = this.maxHp = 25;
-        this.damage = 8;
-        this.range = 250;
+        this.hp = this.maxHp = 30;
+        this.damage = 9;
+        this.range = 260;
+        this.speed = 1.2;
         break;
     }
   }
@@ -162,8 +165,8 @@ export class Minion extends GameObject {
       case MaskType.CONVERT_FIGHTER: this.initStats(MinionType.FIGHTER); break;
       case MaskType.CONVERT_ARCHER: this.initStats(MinionType.ARCHER); break;
       case MaskType.BUFF_HP: this.hp += 60; this.maxHp += 60; break;
-      case MaskType.BUFF_DAMAGE: this.damage += 6; break;
-      case MaskType.BUFF_SPEED: this.speed *= 1.3; break;
+      case MaskType.BUFF_DAMAGE: this.damage += 8; break;
+      case MaskType.BUFF_SPEED: this.speed *= 1.4; break;
     }
   }
 
@@ -235,7 +238,7 @@ export class Minion extends GameObject {
       target.hp -= finalDmg;
       addDmg(this.side, finalDmg);
     } else {
-      const color = this.type === MinionType.MAGE ? '#aa00ff' : '#00ff00';
+      const color = this.type === MinionType.MAGE ? '#d8b4fe' : '#fef08a';
       if (this.type === MinionType.MAGE) audio.playSpell(); else audio.playArrow();
       projectiles.push(new Projectile(this.x, this.y, target, finalDmg, color, () => {
         target.hp -= finalDmg;
@@ -251,7 +254,7 @@ export function isPointInDiagonalPath(x: number, y: number): boolean {
 }
 
 function getPathCenterAt(y: number): number {
-  return 1.5 * (CANVAS_HEIGHT - y);
+  return 1200 * (1 - y / 800);
 }
 
 export class GameEngine {
@@ -263,7 +266,6 @@ export class GameEngine {
   public blueBaseHP = 3;
   public redBaseHP = 3;
   public matchTime = 0;
-  // Start wave after exactly 5 seconds (300 frames at 60fps)
   public waveTimer = 300;
   public stats: GameStats = {
     blueDamageDealt: 0,
@@ -280,10 +282,10 @@ export class GameEngine {
     this.heroes.push(new Hero(80, CANVAS_HEIGHT - 80, 'Red'));
     this.heroes.push(new Hero(CANVAS_WIDTH - 80, 80, 'Blue'));
     
-    this.towers.push(new Tower(350, 550, 'Red'));
-    this.towers.push(new Tower(550, 420, 'Red'));
-    this.towers.push(new Tower(CANVAS_WIDTH - 350, 250, 'Blue'));
-    this.towers.push(new Tower(CANVAS_WIDTH - 550, 380, 'Blue'));
+    this.towers.push(new Tower(350, 566, 'Red'));
+    this.towers.push(new Tower(500, 466, 'Red'));
+    this.towers.push(new Tower(CANVAS_WIDTH - 350, 233, 'Blue'));
+    this.towers.push(new Tower(CANVAS_WIDTH - 500, 333, 'Blue'));
 
     window.addEventListener('keydown', (e) => this.handleKey(e.key, true));
     window.addEventListener('keyup', (e) => this.handleKey(e.key, false));
@@ -293,16 +295,59 @@ export class GameEngine {
     this.heroes.forEach(h => h.keys[key] = pressed);
   }
 
+  resolveMinionCollisions() {
+    // Basic separation logic to prevent overlapping
+    for (let i = 0; i < this.minions.length; i++) {
+      for (let j = i + 1; j < this.minions.length; j++) {
+        const m1 = this.minions[i];
+        const m2 = this.minions[j];
+        if (!m1.active || !m2.active) continue;
+
+        const dx = m2.x - m1.x;
+        const dy = m2.y - m1.y;
+        const distSq = dx * dx + dy * dy;
+        const minDist = m1.radius + m2.radius;
+        const minDistSq = minDist * minDist;
+
+        if (distSq < minDistSq) {
+          const dist = Math.sqrt(distSq) || 0.1;
+          const overlap = minDist - dist;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          
+          // Push both away from each other
+          const pushX = nx * overlap * 0.5;
+          const pushY = ny * overlap * 0.5;
+          
+          m1.x -= pushX;
+          m1.y -= pushY;
+          m2.x += pushX;
+          m2.y += pushY;
+
+          // Re-clamp to path to prevent push-out
+          if (!isPointInDiagonalPath(m1.x, m1.y)) {
+             const center = getPathCenterAt(m1.y);
+             m1.x = Math.max(center - PATH_WIDTH/2, Math.min(center + PATH_WIDTH/2, m1.x));
+          }
+          if (!isPointInDiagonalPath(m2.x, m2.y)) {
+             const center = getPathCenterAt(m2.y);
+             m2.x = Math.max(center - PATH_WIDTH/2, Math.min(center + PATH_WIDTH/2, m2.x));
+          }
+        }
+      }
+    }
+  }
+
   update() {
     this.matchTime++;
     this.waveTimer--;
 
     if (this.waveTimer <= 0) {
       this.spawnWave();
-      this.waveTimer = 30 * 60; // Subsequent waves every 30s
+      this.waveTimer = 25 * 60;
     }
 
-    if (this.matchTime % 450 === 0) {
+    if (this.matchTime % 400 === 0) {
       this.spawnMask();
     }
 
@@ -319,16 +364,23 @@ export class GameEngine {
       const enemyTowers = this.towers.filter(t => t.side !== m.side && t.hp > 0);
       m.update([...enemyMinions, ...enemyTowers], this.projectiles, addDmg);
       
-      const enemyBasePos = m.side === 'Blue' ? { x: 50, y: 750 } : { x: 1150, y: 50 };
+      const enemyBasePos = m.side === 'Blue' ? { x: 80, y: CANVAS_HEIGHT - 80 } : { x: CANVAS_WIDTH - 80, y: 80 };
       const distToBase = Math.sqrt((m.x - enemyBasePos.x) ** 2 + (m.y - enemyBasePos.y) ** 2);
-      if (distToBase < 70) {
-        if (m.side === 'Blue') this.redBaseHP--;
-        else this.blueBaseHP--;
+      
+      if (m.active && distToBase < 40) {
+        if (m.side === 'Blue') {
+          this.redBaseHP = Math.max(0, this.redBaseHP - 1);
+        } else {
+          this.blueBaseHP = Math.max(0, this.blueBaseHP - 1);
+        }
         m.hp = 0;
         m.active = false;
         audio.playDeath();
       }
     });
+
+    // Resolve minion overlaps
+    this.resolveMinionCollisions();
 
     this.minions = this.minions.filter(m => m.active || m.deathTimer < 30);
     this.minions.forEach(m => { if(!m.active) m.deathTimer++ });
@@ -340,11 +392,11 @@ export class GameEngine {
         const target = this.minions.find(m => m.side !== t.side && m.active && Math.sqrt((m.x - t.x)**2 + (m.y - t.y)**2) < t.range);
         if (target) {
           audio.playArrow();
-          this.projectiles.push(new Projectile(t.x, t.y, target, t.damage, '#ffff00', () => {
+          this.projectiles.push(new Projectile(t.x, t.y, target, t.damage, '#fde047', () => {
              target.hp -= t.damage;
              addDmg(t.side, t.damage);
           }));
-          t.cooldown = 120;
+          t.cooldown = 90;
         }
       }
     });
@@ -359,13 +411,10 @@ export class GameEngine {
   }
 
   spawnWave() {
-    const types = [MinionType.FIGHTER, MinionType.MAGE, MinionType.ARCHER];
     for (let i = 0; i < 4; i++) {
       setTimeout(() => {
-        const t1 = types[Math.floor(Math.random() * 3)];
-        const t2 = types[Math.floor(Math.random() * 3)];
-        this.minions.push(new Minion(CANVAS_WIDTH - 80, 80, 'Blue', t1));
-        this.minions.push(new Minion(80, CANVAS_HEIGHT - 80, 'Red', t2));
+        this.minions.push(new Minion(CANVAS_WIDTH - 80, 80, 'Blue', MinionType.FIGHTER));
+        this.minions.push(new Minion(80, CANVAS_HEIGHT - 80, 'Red', MinionType.FIGHTER));
         this.stats.blueMinionsSpawned++;
         this.stats.redMinionsSpawned++;
       }, i * 500);
@@ -378,8 +427,8 @@ export class GameEngine {
     let x, y;
     let attempts = 0;
     do {
-      x = 200 + Math.random() * (CANVAS_WIDTH - 400);
-      y = 200 + Math.random() * (CANVAS_HEIGHT - 400);
+      x = 100 + Math.random() * (CANVAS_WIDTH - 200);
+      y = 100 + Math.random() * (CANVAS_HEIGHT - 200);
       attempts++;
     } while (!isPointInDiagonalPath(x, y) && attempts < 50);
     this.masks.push(new Mask(x, y, type));
