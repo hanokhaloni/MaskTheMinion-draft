@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GameStats, getMaskIcon, getMinionIcon } from './types';
-import { GameEngine, CANVAS_WIDTH, CANVAS_HEIGHT, PATH_WIDTH } from './gameEngine';
+import { GameEngine } from './gameEngine';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, PATH_WIDTH } from './constants';
 
 interface PlaySceneProps {
   onGameOver: (stats: GameStats) => void;
@@ -14,14 +15,15 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const requestRef = useRef<number | null>(null);
   
-  const [uiState, setUiState] = useState({
+  // FIX: Fixed invalid object destructuring that caused "must have a [Symbol.iterator]() method" error.
+  const [currentUiState, setCurrentUiState] = useState({
     blueHP: 3,
     redHP: 3,
     time: 0,
     wave: 30
   });
 
-  const generateMap = (bgImage?: HTMLImageElement) => {
+  const generateMap = () => {
     const canvas = document.createElement('canvas');
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
@@ -98,7 +100,7 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
       if (!engineRef.current) return;
       engineRef.current.update();
       draw();
-      setUiState({
+      setCurrentUiState({
         blueHP: engineRef.current.blueBaseHP,
         redHP: engineRef.current.redBaseHP,
         time: Math.floor(engineRef.current.matchTime / 60),
@@ -240,26 +242,26 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
            <div className="text-red-400 font-black text-xs uppercase mb-2 tracking-widest">P1 - RED CORE</div>
            <div className="flex gap-2">
              {[0, 1, 2].map((i) => (
-               <div key={i} className={`w-10 h-10 rounded flex items-center justify-center transition-all duration-500 ${i < uiState.redHP ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)]' : 'bg-slate-800 opacity-20 border border-slate-600'}`}>
-                  {i < uiState.redHP ? '❤️' : '💀'}
+               <div key={i} className={`w-10 h-10 rounded flex items-center justify-center transition-all duration-500 ${i < currentUiState.redHP ? 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)]' : 'bg-slate-800 opacity-20 border border-slate-600'}`}>
+                  {i < currentUiState.redHP ? '❤️' : '💀'}
                </div>
              ))}
            </div>
         </div>
         <div className="flex flex-col items-center gap-2">
           <div className="bg-slate-900/95 border-2 border-slate-700 px-10 py-3 rounded-full shadow-2xl backdrop-blur-md">
-            <span className="text-4xl font-mono font-bold text-white tracking-tighter">{formatTime(uiState.time)}</span>
+            <span className="text-4xl font-mono font-bold text-white tracking-tighter">{formatTime(currentUiState.time)}</span>
           </div>
           <div className="bg-slate-800/90 px-4 py-1 rounded-full border border-slate-600 shadow-lg">
-            <span className="text-xs font-bold text-slate-200 uppercase tracking-widest">WAVE: {uiState.wave}s</span>
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-widest">WAVE: {currentUiState.wave}s</span>
           </div>
         </div>
         <div className="bg-slate-900/90 border-2 border-blue-500 p-4 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.2)] backdrop-blur-md text-right">
            <div className="text-blue-400 font-black text-xs uppercase mb-2 tracking-widest">P2 - BLUE CORE</div>
            <div className="flex gap-2 justify-end">
              {[0, 1, 2].map((i) => (
-               <div key={i} className={`w-10 h-10 rounded flex items-center justify-center transition-all duration-500 ${i < uiState.blueHP ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'bg-slate-800 opacity-20 border border-slate-600'}`}>
-                  {i < uiState.blueHP ? '❤️' : '💀'}
+               <div key={i} className={`w-10 h-10 rounded flex items-center justify-center transition-all duration-500 ${i < currentUiState.blueHP ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'bg-slate-800 opacity-20 border border-slate-600'}`}>
+                  {i < currentUiState.blueHP ? '❤️' : '💀'}
                </div>
              ))}
            </div>
