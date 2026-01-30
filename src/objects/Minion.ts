@@ -1,9 +1,21 @@
 import Phaser from 'phaser';
-import { MinionType, Lane, Position, MaskType, getMinionIcon } from '../types';
+import { MinionType, Lane, Position, MaskType } from '../types';
 import { audio } from '../audioService';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
 import { Projectile, ProjectileTarget } from './Projectile';
 import { Tower } from './Tower';
+
+const MINION_SCALE = 0.07;
+const RED_TINT = 0xff9999;
+const BLUE_TINT = 0x9999ff;
+
+function minionFrame(type: MinionType): number {
+  switch (type) {
+    case MinionType.FIGHTER: return 0;
+    case MinionType.ARCHER: return 1;
+    case MinionType.MAGE: return 3;
+  }
+}
 
 export class Minion extends Phaser.GameObjects.Container {
   public hp = 0;
@@ -22,9 +34,9 @@ export class Minion extends Phaser.GameObjects.Container {
   public deathTimer = 0;
   public radius = 14;
 
-  private bodyGfx: Phaser.GameObjects.Graphics;
+  private sprite: Phaser.GameObjects.Sprite;
+  private maskRingGfx: Phaser.GameObjects.Graphics;
   private hpBarGfx: Phaser.GameObjects.Graphics;
-  private iconText: Phaser.GameObjects.Text;
   private dying = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, side: 'Blue' | 'Red', type: MinionType, lane: Lane) {
@@ -33,15 +45,23 @@ export class Minion extends Phaser.GameObjects.Container {
     this.type = type;
     this.lane = lane;
 
-    this.bodyGfx = scene.add.graphics();
-    this.add(this.bodyGfx);
+    // Shadow
+    const shadow = scene.add.graphics();
+    shadow.fillStyle(0x000000, 0.3);
+    shadow.fillEllipse(0, this.radius - 2, this.radius * 1.6, 8);
+    this.add(shadow);
 
-    this.iconText = scene.add.text(0, 0, getMinionIcon(type), {
-      fontSize: '18px',
-      fontFamily: 'serif',
-    }).setOrigin(0.5);
-    this.add(this.iconText);
+    // Character sprite
+    this.sprite = scene.add.sprite(0, -6, 'characters', minionFrame(type));
+    this.sprite.setScale(MINION_SCALE);
+    this.sprite.setTint(side === 'Red' ? RED_TINT : BLUE_TINT);
+    this.add(this.sprite);
 
+    // Gold ring for masked minions
+    this.maskRingGfx = scene.add.graphics();
+    this.add(this.maskRingGfx);
+
+    // HP bar
     this.hpBarGfx = scene.add.graphics();
     this.add(this.hpBarGfx);
 
@@ -71,7 +91,7 @@ export class Minion extends Phaser.GameObjects.Container {
 
   initStats(type: MinionType) {
     this.type = type;
-    this.iconText?.setText(getMinionIcon(type));
+    this.sprite?.setFrame(minionFrame(type));
     switch (type) {
       case MinionType.FIGHTER:
         this.hp = this.maxHp = 80;
@@ -135,6 +155,10 @@ export class Minion extends Phaser.GameObjects.Container {
     }
 
     if (target) {
+      // Face the target
+      if (target.x < this.x) this.sprite.setFlipX(true);
+      else if (target.x > this.x) this.sprite.setFlipX(false);
+
       if (this.cooldown <= 0) {
         this.attack(target, projectiles, addDmg);
         this.cooldown = 60;
@@ -150,6 +174,10 @@ export class Minion extends Phaser.GameObjects.Container {
       }
 
       if (dist > 0.1) {
+        // Face movement direction
+        if (dx < 0) this.sprite.setFlipX(true);
+        else if (dx > 0) this.sprite.setFlipX(false);
+
         const vx = (dx / dist) * this.speed;
         const vy = (dy / dist) * this.speed;
         this.x += vx;
@@ -197,25 +225,14 @@ export class Minion extends Phaser.GameObjects.Container {
   }
 
   redraw() {
-    this.bodyGfx.clear();
+    this.maskRingGfx.clear();
     this.hpBarGfx.clear();
 
-    const r = this.radius;
-    const bodyColor = this.side === 'Blue' ? 0x60a5fa : 0xf87171;
-
-    // Shadow
-    this.bodyGfx.fillStyle(0x000000, 0.3);
-    this.bodyGfx.fillEllipse(0, r - 2, r * 1.6, 8);
-
-    // Body circle
-    this.bodyGfx.fillStyle(bodyColor, 1);
-    this.bodyGfx.fillCircle(0, 0, r);
-
-    // Stroke
-    const strokeColor = this.hasMask ? 0xfacc15 : 0xffffff;
-    const strokeWidth = this.hasMask ? 3 : 1.5;
-    this.bodyGfx.lineStyle(strokeWidth, strokeColor, 1);
-    this.bodyGfx.strokeCircle(0, 0, r);
+    // Gold ring when masked
+    if (this.hasMask) {
+      this.maskRingGfx.lineStyle(3, 0xfacc15, 1);
+      this.maskRingGfx.strokeCircle(0, -2, this.radius + 2);
+    }
 
     // HP bar (only if active)
     if (this.active) {

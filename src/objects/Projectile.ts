@@ -10,7 +10,6 @@ export class Projectile extends Phaser.GameObjects.Container {
   public speed = 8;
   public active = true;
   public target: ProjectileTarget;
-  public damage: number;
   public color: string;
   public onHit: () => void;
 
@@ -21,7 +20,6 @@ export class Projectile extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number, target: ProjectileTarget, damage: number, color: string, onHit: () => void) {
     super(scene, x, y);
     this.target = target;
-    this.damage = damage;
     this.color = color;
     this.onHit = onHit;
     this.prevX = x;

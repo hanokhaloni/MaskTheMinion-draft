@@ -8,7 +8,6 @@ export class HudScene extends Phaser.Scene {
   private blueHPTexts: Phaser.GameObjects.Text[] = [];
   private timerText!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
-  private hintText!: Phaser.GameObjects.Text;
 
   constructor() {
     super('HudScene');
@@ -83,7 +82,7 @@ export class HudScene extends Phaser.Scene {
     }
 
     // --- Control hint (bottom-left) ---
-    this.hintText = this.add.text(30, this.cameras.main.height - 30, 'P1 RED (WASD) \u2022 P2 BLUE (ARROWS)', {
+    this.add.text(30, this.cameras.main.height - 30, 'P1 RED (WASD) \u2022 P2 BLUE (ARROWS)', {
       fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#ffffff',
       letterSpacing: 3,
     }).setAlpha(0.4);

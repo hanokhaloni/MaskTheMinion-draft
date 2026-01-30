@@ -5,13 +5,18 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
 import { Minion } from './Minion';
 import { GameMask } from './Mask';
 
+const HERO_FRAME = 2;
+const HERO_SCALE = 0.12;
+const RED_TINT = 0xff9999;
+const BLUE_TINT = 0x9999ff;
+
 export class Hero extends Phaser.GameObjects.Container {
   public speed = 4.2;
   public currentMask: MaskType | null = null;
   public side: 'Blue' | 'Red';
   public radius = 22;
 
-  private bodyGfx: Phaser.GameObjects.Graphics;
+  private sprite: Phaser.GameObjects.Sprite;
   private labelText: Phaser.GameObjects.Text;
   private maskText: Phaser.GameObjects.Text;
   private auraGfx: Phaser.GameObjects.Graphics;
@@ -22,25 +27,20 @@ export class Hero extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.side = side;
 
-    const color = side === 'Blue' ? '#2563eb' : '#dc2626';
-
     // Shadow
     const shadow = scene.add.graphics();
     shadow.fillStyle(0x000000, 0.4);
     shadow.fillEllipse(0, this.radius - 2, this.radius * 1.8, 12);
     this.add(shadow);
 
-    // Body
-    this.bodyGfx = scene.add.graphics();
-    this.add(this.bodyGfx);
-    const col = Phaser.Display.Color.HexStringToColor(color).color;
-    this.bodyGfx.fillStyle(col, 1);
-    this.bodyGfx.fillCircle(0, 0, this.radius);
-    this.bodyGfx.lineStyle(3, 0xffffff, 1);
-    this.bodyGfx.strokeCircle(0, 0, this.radius);
+    // Character sprite
+    this.sprite = scene.add.sprite(0, -8, 'characters', HERO_FRAME);
+    this.sprite.setScale(HERO_SCALE);
+    this.sprite.setTint(side === 'Red' ? RED_TINT : BLUE_TINT);
+    this.add(this.sprite);
 
     // Label
-    this.labelText = scene.add.text(0, 4, side === 'Red' ? 'P1' : 'P2', {
+    this.labelText = scene.add.text(0, 14, side === 'Red' ? 'P1' : 'P2', {
       fontSize: '12px',
       fontFamily: 'sans-serif',
       fontStyle: 'bold',
@@ -78,6 +78,10 @@ export class Hero extends Phaser.GameObjects.Container {
       if (this.keys['ArrowLeft']) moveX -= this.speed;
       if (this.keys['ArrowRight']) moveX += this.speed;
     }
+
+    // Flip sprite to face movement direction
+    if (moveX < 0) this.sprite.setFlipX(true);
+    else if (moveX > 0) this.sprite.setFlipX(false);
 
     let nextX = this.x + moveX;
     let nextY = this.y + moveY;
@@ -144,10 +148,8 @@ export class Hero extends Phaser.GameObjects.Container {
     if (this.currentMask) {
       this.maskText.setText(getMaskIcon(this.currentMask));
       this.maskText.setVisible(true);
-      // Floating animation driven by sine
       this.maskText.y = -55 + Math.sin(Date.now() / 150) * 8;
 
-      // Aura
       this.auraGfx.clear();
       this.auraGfx.lineStyle(1, 0xffffff, 0.3);
       this.auraGfx.strokeCircle(0, 0, this.radius + 10);

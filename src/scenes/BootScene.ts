@@ -5,6 +5,13 @@ export class BootScene extends Phaser.Scene {
     super('BootScene');
   }
 
+  preload() {
+    this.load.spritesheet('characters', 'src/characters.png', {
+      frameWidth: 341,
+      frameHeight: 512,
+    });
+  }
+
   create() {
     this.scene.start('IntroScene');
   }
