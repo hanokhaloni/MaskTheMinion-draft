@@ -4,7 +4,8 @@ import { audio } from './audioService';
 
 export const CANVAS_WIDTH = 1200;
 export const CANVAS_HEIGHT = 800;
-export const PATH_WIDTH = 220; 
+export const PATH_WIDTH = 220; // Original lane width for minions
+export const HERO_MOVE_WIDTH = 850; // Larger roaming area for heroes and masks
 
 class GameObject {
   constructor(public x: number, public y: number, public radius: number, public color: string) {}
@@ -79,7 +80,8 @@ export class Hero extends GameObject {
     nextX = Math.max(this.radius, Math.min(CANVAS_WIDTH - this.radius, nextX));
     nextY = Math.max(this.radius, Math.min(CANVAS_HEIGHT - this.radius, nextY));
 
-    if (isPointInDiagonalPath(nextX, nextY)) {
+    // Heroes use the larger HERO_MOVE_WIDTH
+    if (isPointInDiagonalPath(nextX, nextY, HERO_MOVE_WIDTH)) {
         this.x = nextX;
         this.y = nextY;
     }
@@ -212,7 +214,8 @@ export class Minion extends GameObject {
       let nextX = this.x + vx;
       let nextY = this.y + vy;
 
-      if (isPointInDiagonalPath(nextX, nextY)) {
+      // Minions remain restricted to the original PATH_WIDTH
+      if (isPointInDiagonalPath(nextX, nextY, PATH_WIDTH)) {
         this.x = nextX;
         this.y = nextY;
       } else {
@@ -248,9 +251,9 @@ export class Minion extends GameObject {
   }
 }
 
-export function isPointInDiagonalPath(x: number, y: number): boolean {
+export function isPointInDiagonalPath(x: number, y: number, width: number = PATH_WIDTH): boolean {
   const pathCenter = getPathCenterAt(y);
-  return x >= pathCenter - PATH_WIDTH / 2 && x <= pathCenter + PATH_WIDTH / 2;
+  return x >= pathCenter - width / 2 && x <= pathCenter + width / 2;
 }
 
 function getPathCenterAt(y: number): number {
@@ -324,12 +327,12 @@ export class GameEngine {
           m2.x += pushX;
           m2.y += pushY;
 
-          // Re-clamp to path to prevent push-out
-          if (!isPointInDiagonalPath(m1.x, m1.y)) {
+          // Re-clamp to path to prevent push-out (Minions stay in narrow lane)
+          if (!isPointInDiagonalPath(m1.x, m1.y, PATH_WIDTH)) {
              const center = getPathCenterAt(m1.y);
              m1.x = Math.max(center - PATH_WIDTH/2, Math.min(center + PATH_WIDTH/2, m1.x));
           }
-          if (!isPointInDiagonalPath(m2.x, m2.y)) {
+          if (!isPointInDiagonalPath(m2.x, m2.y, PATH_WIDTH)) {
              const center = getPathCenterAt(m2.y);
              m2.x = Math.max(center - PATH_WIDTH/2, Math.min(center + PATH_WIDTH/2, m2.x));
           }
@@ -430,7 +433,7 @@ export class GameEngine {
       x = 100 + Math.random() * (CANVAS_WIDTH - 200);
       y = 100 + Math.random() * (CANVAS_HEIGHT - 200);
       attempts++;
-    } while (!isPointInDiagonalPath(x, y) && attempts < 50);
+    } while (!isPointInDiagonalPath(x, y, HERO_MOVE_WIDTH) && attempts < 50);
     this.masks.push(new Mask(x, y, type));
   }
 }
