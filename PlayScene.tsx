@@ -11,6 +11,7 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
   const requestRef = useRef<number | null>(null);
   
   const [uiState, setUiState] = useState({
@@ -20,40 +21,45 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
     wave: 30
   });
 
-  const generateMap = () => {
+  const generateMap = (bgImage?: HTMLImageElement) => {
     const canvas = document.createElement('canvas');
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
     const ctx = canvas.getContext('2d');
     if (!ctx) return canvas;
 
-    const bgGradient = ctx.createRadialGradient(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT/2, CANVAS_WIDTH);
-    bgGradient.addColorStop(0, '#0f172a');
-    bgGradient.addColorStop(1, '#020617');
-    ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    if (bgImage && bgImage.complete) {
+      ctx.drawImage(bgImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    } else {
+      const bgGradient = ctx.createRadialGradient(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT/2, CANVAS_WIDTH);
+      bgGradient.addColorStop(0, '#0f172a');
+      bgGradient.addColorStop(1, '#020617');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    ctx.fillStyle = 'rgba(22, 101, 52, 0.1)';
-    for (let i = 0; i < 40; i++) {
-        ctx.beginPath();
-        ctx.arc(Math.random() * CANVAS_WIDTH, Math.random() * CANVAS_HEIGHT, 50 + Math.random() * 100, 0, Math.PI * 2);
-        ctx.fill();
+      ctx.fillStyle = 'rgba(22, 101, 52, 0.1)';
+      for (let i = 0; i < 40; i++) {
+          ctx.beginPath();
+          ctx.arc(Math.random() * CANVAS_WIDTH, Math.random() * CANVAS_HEIGHT, 50 + Math.random() * 100, 0, Math.PI * 2);
+          ctx.fill();
+      }
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = PATH_WIDTH + 10;
+      ctx.beginPath();
+      ctx.moveTo(CANVAS_WIDTH, 0);
+      ctx.lineTo(0, CANVAS_HEIGHT);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = PATH_WIDTH - 4;
+      ctx.beginPath();
+      ctx.moveTo(CANVAS_WIDTH, 0);
+      ctx.lineTo(0, CANVAS_HEIGHT);
+      ctx.stroke();
     }
 
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = PATH_WIDTH + 10;
-    ctx.beginPath();
-    ctx.moveTo(CANVAS_WIDTH, 0);
-    ctx.lineTo(0, CANVAS_HEIGHT);
-    ctx.stroke();
-
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth = PATH_WIDTH - 4;
-    ctx.beginPath();
-    ctx.moveTo(CANVAS_WIDTH, 0);
-    ctx.lineTo(0, CANVAS_HEIGHT);
-    ctx.stroke();
-
+    // Always draw gameplay markers over background (image or procedural)
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     for (let i = 0; i < 200; i++) {
@@ -111,6 +117,17 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
   };
 
   useEffect(() => {
+    // Load background image
+    const img = new Image();
+    img.src = 'map.png';
+    img.onload = () => {
+      bgImageRef.current = img;
+      offscreenCanvasRef.current = generateMap(img);
+    };
+    img.onerror = () => {
+      console.log('map.png not found, using procedural map');
+    };
+
     offscreenCanvasRef.current = generateMap();
     const engine = new GameEngine(onGameOver);
     engineRef.current = engine;
