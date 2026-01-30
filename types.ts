@@ -5,6 +5,12 @@ export enum MinionType {
   ARCHER = 'ARCHER'
 }
 
+export enum Lane {
+  TOP = 'TOP',
+  MID = 'MID',
+  BOT = 'BOT'
+}
+
 export enum MaskType {
   CONVERT_MAGE = 'CONVERT_MAGE',
   CONVERT_FIGHTER = 'CONVERT_FIGHTER',

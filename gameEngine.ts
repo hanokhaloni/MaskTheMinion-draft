@@ -1,11 +1,11 @@
 
-import { MinionType, MaskType, Position, GameStats } from './types';
+import { MinionType, MaskType, Position, GameStats, Lane } from './types';
 import { audio } from './audioService';
 
 export const CANVAS_WIDTH = 1200;
 export const CANVAS_HEIGHT = 800;
-export const PATH_WIDTH = 220; // Original lane width for minions
-export const HERO_MOVE_WIDTH = 850; // Larger roaming area for heroes and masks
+export const PATH_WIDTH = 120; // Narrower paths for 3 lanes
+export const PLAYABLE_PADDING = 40;
 
 class GameObject {
   constructor(public x: number, public y: number, public radius: number, public color: string) {}
@@ -41,7 +41,7 @@ export class Mask extends GameObject {
 export class Tower extends GameObject {
   public hp = 180;
   public maxHp = 180;
-  public damage = 8;
+  public damage = 10;
   public range = 180;
   public cooldown = 0;
   public side: 'Blue' | 'Red';
@@ -53,8 +53,7 @@ export class Tower extends GameObject {
 }
 
 export class Hero extends GameObject {
-  // Movement speed reduced by 30% from 5.5 to 3.85
-  public speed = 3.5;
+  public speed = 4.2;
   public currentMask: MaskType | null = null;
   public keys: Record<string, boolean> = {};
 
@@ -62,31 +61,50 @@ export class Hero extends GameObject {
     super(x, y, 22, side === 'Blue' ? '#2563eb' : '#dc2626');
   }
 
-  update(minions: Minion[], masks: Mask[], walls: { x1: number; y1: number; x2: number; y2: number }[]) {
-    let nextX = this.x;
-    let nextY = this.y;
+  update(minions: Minion[], masks: Mask[]) {
+    let moveX = 0;
+    let moveY = 0;
 
     if (this.side === 'Red') {
-      if (this.keys['w']) nextY -= this.speed;
-      if (this.keys['s']) nextY += this.speed;
-      if (this.keys['a']) nextX -= this.speed;
-      if (this.keys['d']) nextX += this.speed;
+      if (this.keys['w']) moveY -= this.speed;
+      if (this.keys['s']) moveY += this.speed;
+      if (this.keys['a']) moveX -= this.speed;
+      if (this.keys['d']) moveX += this.speed;
     } else {
-      if (this.keys['ArrowUp']) nextY -= this.speed;
-      if (this.keys['ArrowDown']) nextY += this.speed;
-      if (this.keys['ArrowLeft']) nextX -= this.speed;
-      if (this.keys['ArrowRight']) nextX += this.speed;
+      if (this.keys['ArrowUp']) moveY -= this.speed;
+      if (this.keys['ArrowDown']) moveY += this.speed;
+      if (this.keys['ArrowLeft']) moveX -= this.speed;
+      if (this.keys['ArrowRight']) moveX += this.speed;
     }
 
+    let nextX = this.x + moveX;
+    let nextY = this.y + moveY;
+
+    // Canvas bounds
     nextX = Math.max(this.radius, Math.min(CANVAS_WIDTH - this.radius, nextX));
     nextY = Math.max(this.radius, Math.min(CANVAS_HEIGHT - this.radius, nextY));
 
-    // Heroes use the larger HERO_MOVE_WIDTH
-    if (isPointInDiagonalPath(nextX, nextY, HERO_MOVE_WIDTH)) {
-        this.x = nextX;
-        this.y = nextY;
+    // HERO-MINION COLLISION
+    for (const minion of minions) {
+      if (!minion.active) continue;
+      const dx = nextX - minion.x;
+      const dy = nextY - minion.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const minDist = this.radius + minion.radius;
+      if (dist < minDist) {
+        // Push hero back outside the minion radius
+        const overlap = minDist - dist;
+        const nx = dx / (dist || 0.1);
+        const ny = dy / (dist || 0.1);
+        nextX += nx * overlap;
+        nextY += ny * overlap;
+      }
     }
 
+    this.x = nextX;
+    this.y = nextY;
+
+    // MASK PICKUP
     masks.forEach(mask => {
       if (mask.active && !this.currentMask) {
         const dx = this.x - mask.x;
@@ -99,6 +117,7 @@ export class Hero extends GameObject {
       }
     });
 
+    // MASK DELIVERY
     if (this.currentMask) {
       minions.forEach(minion => {
         if (minion.side === this.side && minion.active) {
@@ -123,40 +142,60 @@ export class Minion extends GameObject {
   public speed = 0.8;
   public type: MinionType;
   public side: 'Blue' | 'Red';
-  public targetPos: Position;
+  public lane: Lane;
+  public waypoints: Position[] = [];
+  public currentWaypointIndex = 0;
   public active = true;
   public cooldown = 0;
   public hasMask = false;
   public deathTimer = 0;
 
-  constructor(x: number, y: number, side: 'Blue' | 'Red', type: MinionType) {
+  constructor(x: number, y: number, side: 'Blue' | 'Red', type: MinionType, lane: Lane) {
     super(x, y, 14, side === 'Blue' ? '#60a5fa' : '#f87171');
     this.side = side;
     this.type = type;
-    this.targetPos = side === 'Blue' ? { x: 50, y: 750 } : { x: 1150, y: 50 };
+    this.lane = lane;
     this.initStats(type);
+    this.initWaypoints();
+  }
+
+  initWaypoints() {
+    const redBase = { x: 80, y: CANVAS_HEIGHT - 80 };
+    const blueBase = { x: CANVAS_WIDTH - 80, y: 80 };
+    const topLeft = { x: 80, y: 80 };
+    const botRight = { x: CANVAS_WIDTH - 80, y: CANVAS_HEIGHT - 80 };
+
+    if (this.side === 'Red') {
+      if (this.lane === Lane.TOP) this.waypoints = [topLeft, blueBase];
+      else if (this.lane === Lane.BOT) this.waypoints = [botRight, blueBase];
+      else this.waypoints = [blueBase];
+    } else {
+      if (this.lane === Lane.TOP) this.waypoints = [topLeft, redBase];
+      else if (this.lane === Lane.BOT) this.waypoints = [botRight, redBase];
+      else this.waypoints = [redBase];
+    }
   }
 
   initStats(type: MinionType) {
     this.type = type;
     switch (type) {
       case MinionType.FIGHTER:
-        this.hp = this.maxHp = 70;
-        this.damage = 14;
+        this.hp = this.maxHp = 80;
+        this.damage = 15;
         this.range = 45;
-        this.speed = 0.91; // 1.3 * 0.7
+        this.speed = 1.0;
         break;
       case MinionType.MAGE:
-        this.hp = this.maxHp = 40;
-        this.damage = 12;
-        this.range = 160;
-        this.speed = 0.77; // 1.1 * 0.7
+        this.hp = this.maxHp = 45;
+        this.damage = 14;
+        this.range = 170;
+        this.speed = 0.8;
         break;
       case MinionType.ARCHER:
-        this.hp = this.maxHp = 30;
-        this.damage = 9;
-        this.range = 260;
-        this.speed = 0.84; // 1.2 * 0.7
+        this.hp = this.maxHp = 35;
+        this.damage = 11;
+        this.range = 250;
+        this.speed = 0.9;
         break;
     }
   }
@@ -168,7 +207,7 @@ export class Minion extends GameObject {
       case MaskType.CONVERT_FIGHTER: this.initStats(MinionType.FIGHTER); break;
       case MaskType.CONVERT_ARCHER: this.initStats(MinionType.ARCHER); break;
       case MaskType.BUFF_HP: this.hp += 60; this.maxHp += 60; break;
-      case MaskType.BUFF_DAMAGE: this.damage += 8; break;
+      case MaskType.BUFF_DAMAGE: this.damage += 10; break;
       case MaskType.BUFF_SPEED: this.speed *= 1.4; break;
     }
   }
@@ -205,26 +244,19 @@ export class Minion extends GameObject {
         this.cooldown = 60;
       }
     } else {
-      const dx = this.targetPos.x - this.x;
-      const dy = this.targetPos.y - this.y;
+      const wp = this.waypoints[this.currentWaypointIndex];
+      const dx = wp.x - this.x;
+      const dy = wp.y - this.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      
+
+      if (dist < 20 && this.currentWaypointIndex < this.waypoints.length - 1) {
+        this.currentWaypointIndex++;
+      }
+
       const vx = (dx / dist) * this.speed;
       const vy = (dy / dist) * this.speed;
-      
-      let nextX = this.x + vx;
-      let nextY = this.y + vy;
-
-      // Minions remain restricted to the original PATH_WIDTH
-      if (isPointInDiagonalPath(nextX, nextY, PATH_WIDTH)) {
-        this.x = nextX;
-        this.y = nextY;
-      } else {
-        const pathCenter = getPathCenterAt(nextY);
-        if (nextX < pathCenter - PATH_WIDTH / 2) this.x += 1;
-        if (nextX > pathCenter + PATH_WIDTH / 2) this.x -= 1;
-        this.y = nextY;
-      }
+      this.x += vx;
+      this.y += vy;
     }
   }
 
@@ -252,15 +284,6 @@ export class Minion extends GameObject {
   }
 }
 
-export function isPointInDiagonalPath(x: number, y: number, width: number = PATH_WIDTH): boolean {
-  const pathCenter = getPathCenterAt(y);
-  return x >= pathCenter - width / 2 && x <= pathCenter + width / 2;
-}
-
-function getPathCenterAt(y: number): number {
-  return 1200 * (1 - y / 800);
-}
-
 export class GameEngine {
   public minions: Minion[] = [];
   public heroes: Hero[] = [];
@@ -286,10 +309,17 @@ export class GameEngine {
     this.heroes.push(new Hero(80, CANVAS_HEIGHT - 80, 'Red'));
     this.heroes.push(new Hero(CANVAS_WIDTH - 80, 80, 'Blue'));
     
+    // MID LANE TOWERS
     this.towers.push(new Tower(350, 566, 'Red'));
-    this.towers.push(new Tower(500, 466, 'Red'));
     this.towers.push(new Tower(CANVAS_WIDTH - 350, 233, 'Blue'));
-    this.towers.push(new Tower(CANVAS_WIDTH - 500, 333, 'Blue'));
+
+    // TOP LANE TOWERS
+    this.towers.push(new Tower(80, 400, 'Red'));
+    this.towers.push(new Tower(400, 80, 'Blue'));
+
+    // BOT LANE TOWERS
+    this.towers.push(new Tower(800, 720, 'Red'));
+    this.towers.push(new Tower(1120, 400, 'Blue'));
 
     window.addEventListener('keydown', (e) => this.handleKey(e.key, true));
     window.addEventListener('keyup', (e) => this.handleKey(e.key, false));
@@ -300,7 +330,6 @@ export class GameEngine {
   }
 
   resolveMinionCollisions() {
-    // Basic separation logic to prevent overlapping
     for (let i = 0; i < this.minions.length; i++) {
       for (let j = i + 1; j < this.minions.length; j++) {
         const m1 = this.minions[i];
@@ -319,7 +348,6 @@ export class GameEngine {
           const nx = dx / dist;
           const ny = dy / dist;
           
-          // Push both away from each other
           const pushX = nx * overlap * 0.5;
           const pushY = ny * overlap * 0.5;
           
@@ -327,16 +355,6 @@ export class GameEngine {
           m1.y -= pushY;
           m2.x += pushX;
           m2.y += pushY;
-
-          // Re-clamp to path to prevent push-out (Minions stay in narrow lane)
-          if (!isPointInDiagonalPath(m1.x, m1.y, PATH_WIDTH)) {
-             const center = getPathCenterAt(m1.y);
-             m1.x = Math.max(center - PATH_WIDTH/2, Math.min(center + PATH_WIDTH/2, m1.x));
-          }
-          if (!isPointInDiagonalPath(m2.x, m2.y, PATH_WIDTH)) {
-             const center = getPathCenterAt(m2.y);
-             m2.x = Math.max(center - PATH_WIDTH/2, Math.min(center + PATH_WIDTH/2, m2.x));
-          }
         }
       }
     }
@@ -351,7 +369,7 @@ export class GameEngine {
       this.waveTimer = 25 * 60;
     }
 
-    if (this.matchTime % 400 === 0) {
+    if (this.matchTime % 450 === 0) {
       this.spawnMask();
     }
 
@@ -383,7 +401,6 @@ export class GameEngine {
       }
     });
 
-    // Resolve minion overlaps
     this.resolveMinionCollisions();
 
     this.minions = this.minions.filter(m => m.active || m.deathTimer < 30);
@@ -405,7 +422,7 @@ export class GameEngine {
       }
     });
 
-    this.heroes.forEach(h => h.update(this.minions, this.masks, []));
+    this.heroes.forEach(h => h.update(this.minions, this.masks));
 
     if (this.blueBaseHP <= 0 || this.redBaseHP <= 0) {
       this.stats.winner = this.blueBaseHP <= 0 ? 'Red' : 'Blue';
@@ -415,37 +432,30 @@ export class GameEngine {
   }
 
   spawnWave() {
-    for (let i = 0; i < 4; i++) {
-      setTimeout(() => {
-        this.minions.push(new Minion(CANVAS_WIDTH - 80, 80, 'Blue', MinionType.FIGHTER));
-        this.minions.push(new Minion(80, CANVAS_HEIGHT - 80, 'Red', MinionType.FIGHTER));
-        this.stats.blueMinionsSpawned++;
-        this.stats.redMinionsSpawned++;
-      }, i * 500);
-    }
+    const lanes = [Lane.TOP, Lane.MID, Lane.BOT];
+    lanes.forEach(lane => {
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          this.minions.push(new Minion(CANVAS_WIDTH - 80, 80, 'Blue', MinionType.FIGHTER, lane));
+          this.minions.push(new Minion(80, CANVAS_HEIGHT - 80, 'Red', MinionType.FIGHTER, lane));
+          this.stats.blueMinionsSpawned++;
+          this.stats.redMinionsSpawned++;
+        }, i * 500);
+      }
+    });
   }
 
   spawnMask() {
     const allMasks = Object.values(MaskType);
-    
-    // Create a weighted pool to make Brawler (CONVERT_FIGHTER) rarer.
-    // Weighted 1:10 compared to other masks.
     const weightedPool: MaskType[] = [];
     allMasks.forEach(m => {
-      const weight = m === MaskType.CONVERT_FIGHTER ? 1 : 10;
-      for (let i = 0; i < weight; i++) {
-        weightedPool.push(m);
-      }
+      const weight = m === MaskType.CONVERT_FIGHTER ? 2 : 10;
+      for (let i = 0; i < weight; i++) weightedPool.push(m);
     });
 
     const type = weightedPool[Math.floor(Math.random() * weightedPool.length)];
-    let x, y;
-    let attempts = 0;
-    do {
-      x = 100 + Math.random() * (CANVAS_WIDTH - 200);
-      y = 100 + Math.random() * (CANVAS_HEIGHT - 200);
-      attempts++;
-    } while (!isPointInDiagonalPath(x, y, HERO_MOVE_WIDTH) && attempts < 50);
+    const x = 150 + Math.random() * (CANVAS_WIDTH - 300);
+    const y = 150 + Math.random() * (CANVAS_HEIGHT - 300);
     this.masks.push(new Mask(x, y, type));
   }
 }

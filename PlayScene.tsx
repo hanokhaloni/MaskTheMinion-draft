@@ -28,106 +28,68 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return canvas;
 
-    if (bgImage && bgImage.complete) {
-      ctx.drawImage(bgImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    } else {
-      const bgGradient = ctx.createRadialGradient(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT/2, CANVAS_WIDTH);
-      bgGradient.addColorStop(0, '#0f172a');
-      bgGradient.addColorStop(1, '#020617');
-      ctx.fillStyle = bgGradient;
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const bgGradient = ctx.createRadialGradient(CANVAS_WIDTH/2, CANVAS_HEIGHT/2, 0, CANVAS_WIDTH/2, CANVAS_HEIGHT/2, CANVAS_WIDTH);
+    bgGradient.addColorStop(0, '#0f172a');
+    bgGradient.addColorStop(1, '#020617');
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-      ctx.fillStyle = 'rgba(22, 101, 52, 0.1)';
-      for (let i = 0; i < 40; i++) {
-          ctx.beginPath();
-          ctx.arc(Math.random() * CANVAS_WIDTH, Math.random() * CANVAS_HEIGHT, 50 + Math.random() * 100, 0, Math.PI * 2);
-          ctx.fill();
-      }
+    // DRAW LANES
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = PATH_WIDTH;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = PATH_WIDTH + 10;
-      ctx.beginPath();
-      ctx.moveTo(CANVAS_WIDTH, 0);
-      ctx.lineTo(0, CANVAS_HEIGHT);
-      ctx.stroke();
+    const redBase = [80, CANVAS_HEIGHT - 80];
+    const blueBase = [CANVAS_WIDTH - 80, 80];
+    const topLeft = [80, 80];
+    const botRight = [CANVAS_WIDTH - 80, CANVAS_HEIGHT - 80];
 
-      ctx.strokeStyle = '#1e293b';
-      ctx.lineWidth = PATH_WIDTH - 4;
-      ctx.beginPath();
-      ctx.moveTo(CANVAS_WIDTH, 0);
-      ctx.lineTo(0, CANVAS_HEIGHT);
-      ctx.stroke();
-    }
+    // TOP LANE
+    ctx.beginPath();
+    ctx.moveTo(redBase[0], redBase[1]);
+    ctx.lineTo(topLeft[0], topLeft[1]);
+    ctx.lineTo(blueBase[0], blueBase[1]);
+    ctx.stroke();
 
-    // Always draw gameplay markers over background (image or procedural)
+    // MID LANE
+    ctx.beginPath();
+    ctx.moveTo(redBase[0], redBase[1]);
+    ctx.lineTo(blueBase[0], blueBase[1]);
+    ctx.stroke();
+
+    // BOT LANE
+    ctx.beginPath();
+    ctx.moveTo(redBase[0], redBase[1]);
+    ctx.lineTo(botRight[0], botRight[1]);
+    ctx.lineTo(blueBase[0], blueBase[1]);
+    ctx.stroke();
+
+    // Visual texture for lanes
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 200; i++) {
-        const py = Math.random() * CANVAS_HEIGHT;
-        const px = 1200 * (1 - py / 800) + (Math.random() - 0.5) * PATH_WIDTH;
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(px + (Math.random() - 0.5) * 20, py + (Math.random() - 0.5) * 20);
-        ctx.stroke();
-    }
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.setLineDash([10, 20]);
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(CANVAS_WIDTH - PATH_WIDTH/2, -PATH_WIDTH/2);
-    ctx.lineTo(-PATH_WIDTH/2, CANVAS_HEIGHT + PATH_WIDTH/2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(CANVAS_WIDTH + PATH_WIDTH/2, PATH_WIDTH/2);
-    ctx.lineTo(PATH_WIDTH/2, CANVAS_HEIGHT - PATH_WIDTH/2);
-    ctx.stroke();
+    // Top
+    ctx.beginPath(); ctx.moveTo(redBase[0], redBase[1]); ctx.lineTo(topLeft[0], topLeft[1]); ctx.lineTo(blueBase[0], blueBase[1]); ctx.stroke();
+    // Mid
+    ctx.beginPath(); ctx.moveTo(redBase[0], redBase[1]); ctx.lineTo(blueBase[0], blueBase[1]); ctx.stroke();
+    // Bot
+    ctx.beginPath(); ctx.moveTo(redBase[0], redBase[1]); ctx.lineTo(botRight[0], botRight[1]); ctx.lineTo(blueBase[0], blueBase[1]); ctx.stroke();
     ctx.setLineDash([]);
 
-    const redBaseX = 80;
-    const redBaseY = CANVAS_HEIGHT - 80;
+    // Bases
     ctx.fillStyle = 'rgba(220, 38, 38, 0.2)';
-    ctx.beginPath();
-    ctx.arc(redBaseX, redBaseY, 120, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#dc2626';
-    ctx.lineWidth = 4;
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(redBase[0], redBase[1], 120, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 4; ctx.stroke();
     
-    const blueBaseX = CANVAS_WIDTH - 80;
-    const blueBaseY = 80;
     ctx.fillStyle = 'rgba(37, 99, 235, 0.2)';
-    ctx.beginPath();
-    ctx.arc(blueBaseX, blueBaseY, 120, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#2563eb';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < CANVAS_WIDTH; x += 40) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_HEIGHT); ctx.stroke();
-    }
-    for (let y = 0; y < CANVAS_HEIGHT; y += 40) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_WIDTH, y); ctx.stroke();
-    }
+    ctx.beginPath(); ctx.arc(blueBase[0], blueBase[1], 120, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4; ctx.stroke();
 
     return canvas;
   };
 
   useEffect(() => {
-    // Load background image
-    const img = new Image();
-    img.src = 'map.png';
-    img.onload = () => {
-      bgImageRef.current = img;
-      offscreenCanvasRef.current = generateMap(img);
-    };
-    img.onerror = () => {
-      console.log('map.png not found, using procedural map');
-    };
-
     offscreenCanvasRef.current = generateMap();
     const engine = new GameEngine(onGameOver);
     engineRef.current = engine;
@@ -176,36 +138,24 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
       engine.towers.forEach(t => {
         if (t.hp <= 0) {
           ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
-          ctx.beginPath();
-          ctx.roundRect(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2, 6);
-          ctx.fill();
-          ctx.strokeStyle = '#475569';
-          ctx.stroke();
+          ctx.beginPath(); ctx.roundRect(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2, 6); ctx.fill();
+          ctx.strokeStyle = '#475569'; ctx.stroke();
           return;
         }
         
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
-        ctx.beginPath();
-        ctx.arc(t.x, t.y + 10, t.radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(t.x, t.y + 10, t.radius, 0, Math.PI * 2); ctx.fill();
 
         ctx.fillStyle = t.color;
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = t.color;
-        ctx.beginPath();
-        ctx.roundRect(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2, 12);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        ctx.stroke();
+        ctx.shadowBlur = 20; ctx.shadowColor = t.color;
+        ctx.beginPath(); ctx.roundRect(t.x - t.radius, t.y - t.radius, t.radius * 2, t.radius * 2, 12); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
         ctx.shadowBlur = 0;
 
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 20px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center';
         ctx.fillText('♜', t.x, t.y + 7);
 
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(t.x - 30, t.y - 45, 60, 8);
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(t.x - 30, t.y - 45, 60, 8);
         ctx.fillStyle = t.side === 'Blue' ? '#3b82f6' : '#ef4444';
         ctx.fillRect(t.x - 30, t.y - 45, 60 * (t.hp / t.maxHp), 8);
       });
@@ -215,28 +165,20 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
         ctx.globalAlpha = opacity;
         
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        ctx.ellipse(m.x, m.y + m.radius - 2, m.radius * 0.8, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.ellipse(m.x, m.y + m.radius - 2, m.radius * 0.8, 4, 0, 0, Math.PI * 2); ctx.fill();
 
         ctx.fillStyle = m.color;
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2); ctx.fill();
         
         ctx.strokeStyle = m.hasMask ? '#facc15' : 'white';
         ctx.lineWidth = m.hasMask ? 3 : 1.5;
         ctx.stroke();
 
-        ctx.fillStyle = '#fff';
-        ctx.font = '18px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff'; ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(getMinionIcon(m.type), m.x, m.y);
 
         if (m.active) {
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(m.x - 15, m.y - 25, 30, 5);
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(m.x - 15, m.y - 25, 30, 5);
             ctx.fillStyle = m.side === 'Blue' ? '#60a5fa' : '#f87171';
             ctx.fillRect(m.x - 15, m.y - 25, 30 * (m.hp / m.maxHp), 5);
         }
@@ -245,57 +187,36 @@ const PlayScene: React.FC<PlaySceneProps> = ({ onGameOver }) => {
 
       engine.heroes.forEach(h => {
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
-        ctx.beginPath();
-        ctx.ellipse(h.x, h.y + h.radius - 2, h.radius * 0.9, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.ellipse(h.x, h.y + h.radius - 2, h.radius * 0.9, 6, 0, 0, Math.PI * 2); ctx.fill();
 
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = h.color;
+        ctx.shadowBlur = 25; ctx.shadowColor = h.color;
         ctx.fillStyle = h.color;
-        ctx.beginPath();
-        ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2); ctx.fill();
         
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
-        ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.stroke();
         ctx.shadowBlur = 0;
 
         if (h.currentMask) {
-          ctx.font = '32px serif';
-          ctx.textAlign = 'center';
+          ctx.font = '32px serif'; ctx.textAlign = 'center';
           const floatY = h.y - 55 + Math.sin(Date.now() / 150) * 8;
           ctx.fillText(getMaskIcon(h.currentMask), h.x, floatY);
           
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.setLineDash([2, 2]);
-          ctx.beginPath();
-          ctx.arc(h.x, h.y, h.radius + 10, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.setLineDash([2, 2]);
+          ctx.beginPath(); ctx.arc(h.x, h.y, h.radius + 10, 0, Math.PI * 2); ctx.stroke();
           ctx.setLineDash([]);
         }
 
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 12px sans-serif';
+        ctx.fillStyle = 'white'; ctx.font = 'bold 12px sans-serif';
         ctx.fillText(h.side === 'Red' ? 'P1' : 'P2', h.x, h.y + 4);
       });
 
       engine.projectiles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = p.color; ctx.shadowBlur = 12; ctx.shadowColor = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius + 1, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0;
         
-        ctx.strokeStyle = p.color;
-        ctx.globalAlpha = 0.4;
-        ctx.lineWidth = p.radius;
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p.x - 10, p.y - 10);
-        ctx.stroke();
+        ctx.strokeStyle = p.color; ctx.globalAlpha = 0.4; ctx.lineWidth = p.radius;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 10, p.y - 10); ctx.stroke();
         ctx.globalAlpha = 1;
       });
     };
