@@ -53,7 +53,8 @@ export class Tower extends GameObject {
 }
 
 export class Hero extends GameObject {
-  public speed = 5.5;
+  // Movement speed reduced by 30% from 5.5 to 3.85
+  public speed = 3.5;
   public currentMask: MaskType | null = null;
   public keys: Record<string, boolean> = {};
 
@@ -119,7 +120,7 @@ export class Minion extends GameObject {
   public maxHp = 0;
   public damage = 0;
   public range = 0;
-  public speed = 1.3;
+  public speed = 0.8;
   public type: MinionType;
   public side: 'Blue' | 'Red';
   public targetPos: Position;
@@ -143,19 +144,19 @@ export class Minion extends GameObject {
         this.hp = this.maxHp = 70;
         this.damage = 14;
         this.range = 45;
-        this.speed = 1.3;
+        this.speed = 0.91; // 1.3 * 0.7
         break;
       case MinionType.MAGE:
         this.hp = this.maxHp = 40;
         this.damage = 12;
         this.range = 160;
-        this.speed = 1.1;
+        this.speed = 0.77; // 1.1 * 0.7
         break;
       case MinionType.ARCHER:
         this.hp = this.maxHp = 30;
         this.damage = 9;
         this.range = 260;
-        this.speed = 1.2;
+        this.speed = 0.84; // 1.2 * 0.7
         break;
     }
   }
@@ -425,8 +426,19 @@ export class GameEngine {
   }
 
   spawnMask() {
-    const masks = Object.values(MaskType);
-    const type = masks[Math.floor(Math.random() * masks.length)];
+    const allMasks = Object.values(MaskType);
+    
+    // Create a weighted pool to make Brawler (CONVERT_FIGHTER) rarer.
+    // Weighted 1:10 compared to other masks.
+    const weightedPool: MaskType[] = [];
+    allMasks.forEach(m => {
+      const weight = m === MaskType.CONVERT_FIGHTER ? 1 : 10;
+      for (let i = 0; i < weight; i++) {
+        weightedPool.push(m);
+      }
+    });
+
+    const type = weightedPool[Math.floor(Math.random() * weightedPool.length)];
     let x, y;
     let attempts = 0;
     do {
