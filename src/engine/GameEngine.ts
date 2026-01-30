@@ -1,18 +1,18 @@
-
-import { MinionType, MaskType, GameStats, Lane } from './types';
-import { audio } from './audioService';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
-import { Projectile } from './GameObject';
-import { Hero } from './Hero';
-import { Minion } from './Minion';
-import { Tower } from './Tower';
-import { Mask } from './Mask';
+import Phaser from 'phaser';
+import { MinionType, MaskType, GameStats, Lane } from '../types';
+import { audio } from '../audioService';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
+import { Projectile } from '../objects/Projectile';
+import { Hero } from '../objects/Hero';
+import { Minion } from '../objects/Minion';
+import { Tower } from '../objects/Tower';
+import { GameMask } from '../objects/Mask';
 
 export class GameEngine {
   public minions: Minion[] = [];
   public heroes: Hero[] = [];
   public towers: Tower[] = [];
-  public masks: Mask[] = [];
+  public masks: GameMask[] = [];
   public projectiles: Projectile[] = [];
   public blueBaseHP = 3;
   public redBaseHP = 3;
@@ -24,33 +24,14 @@ export class GameEngine {
     blueMinionsSpawned: 0,
     redMinionsSpawned: 0,
     matchTime: 0,
-    winner: null
+    winner: null,
   };
-  private onGameOver: (stats: GameStats) => void;
+  public gameOver = false;
 
-  constructor(onGameOver: (stats: GameStats) => void) {
-    this.onGameOver = onGameOver;
-    this.heroes.push(new Hero(80, CANVAS_HEIGHT - 80, 'Red'));
-    this.heroes.push(new Hero(CANVAS_WIDTH - 80, 80, 'Blue'));
-    
-    // MID LANE TOWERS
-    this.towers.push(new Tower(350, 566, 'Red'));
-    this.towers.push(new Tower(CANVAS_WIDTH - 350, 233, 'Blue'));
+  private scene: Phaser.Scene;
 
-    // TOP LANE TOWERS
-    this.towers.push(new Tower(80, 400, 'Red'));
-    this.towers.push(new Tower(400, 80, 'Blue'));
-
-    // BOT LANE TOWERS
-    this.towers.push(new Tower(800, 720, 'Red'));
-    this.towers.push(new Tower(1120, 400, 'Blue'));
-
-    window.addEventListener('keydown', (e) => this.handleKey(e.key, true));
-    window.addEventListener('keyup', (e) => this.handleKey(e.key, false));
-  }
-
-  handleKey(key: string, pressed: boolean) {
-    this.heroes.forEach(h => h.keys[key] = pressed);
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene;
   }
 
   resolveMinionCollisions() {
@@ -71,10 +52,10 @@ export class GameEngine {
           const overlap = minDist - dist;
           const nx = dx / dist;
           const ny = dy / dist;
-          
+
           const pushX = nx * overlap * 0.5;
           const pushY = ny * overlap * 0.5;
-          
+
           m1.x -= pushX;
           m1.y -= pushY;
           m2.x += pushX;
@@ -85,6 +66,8 @@ export class GameEngine {
   }
 
   update() {
+    if (this.gameOver) return;
+
     this.matchTime++;
     this.waveTimer--;
 
@@ -97,22 +80,31 @@ export class GameEngine {
       this.spawnMask();
     }
 
-    this.projectiles.forEach(p => p.update());
-    this.projectiles = this.projectiles.filter(p => p.active);
+    // Update projectiles
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const p = this.projectiles[i];
+      p.update();
+      if (!p.active) {
+        this.projectiles.splice(i, 1);
+      }
+    }
 
     const addDmg = (side: string, dmg: number) => {
       if (side === 'Blue') this.stats.blueDamageDealt += dmg;
       else this.stats.redDamageDealt += dmg;
     };
 
-    this.minions.forEach(m => {
+    // Update minions
+    for (const m of this.minions) {
       const enemyMinions = this.minions.filter(e => e.side !== m.side && e.active);
       const enemyTowers = this.towers.filter(t => t.side !== m.side && t.hp > 0);
-      m.update([...enemyMinions, ...enemyTowers], this.projectiles, addDmg);
-      
-      const enemyBasePos = m.side === 'Blue' ? { x: 80, y: CANVAS_HEIGHT - 80 } : { x: CANVAS_WIDTH - 80, y: 80 };
+      m.updateMinion([...enemyMinions, ...enemyTowers], this.projectiles, addDmg);
+
+      const enemyBasePos = m.side === 'Blue'
+        ? { x: 80, y: CANVAS_HEIGHT - 80 }
+        : { x: CANVAS_WIDTH - 80, y: 80 };
       const distToBase = Math.sqrt((m.x - enemyBasePos.x) ** 2 + (m.y - enemyBasePos.y) ** 2);
-      
+
       if (m.active && distToBase < 40) {
         if (m.side === 'Blue') {
           this.redBaseHP = Math.max(0, this.redBaseHP - 1);
@@ -123,35 +115,60 @@ export class GameEngine {
         m.active = false;
         audio.playDeath();
       }
-    });
+    }
 
     this.resolveMinionCollisions();
 
-    this.minions = this.minions.filter(m => m.active || m.deathTimer < 30);
-    this.minions.forEach(m => { if(!m.active) m.deathTimer++ });
+    // Cleanup dead minions after death animation
+    for (let i = this.minions.length - 1; i >= 0; i--) {
+      const m = this.minions[i];
+      if (!m.active) {
+        m.deathTimer++;
+        if (m.deathTimer >= 30) {
+          this.minions.splice(i, 1);
+          // Container auto-destroys via death tween, but ensure cleanup
+          if (m.scene) m.destroy();
+        }
+      }
+    }
 
-    this.towers.forEach(t => {
-      if (t.hp <= 0) return;
+    // Towers fire
+    for (const t of this.towers) {
+      if (t.hp <= 0) continue;
       if (t.cooldown > 0) t.cooldown--;
       if (t.cooldown <= 0) {
-        const target = this.minions.find(m => m.side !== t.side && m.active && Math.sqrt((m.x - t.x)**2 + (m.y - t.y)**2) < t.range);
+        const target = this.minions.find(
+          m => m.side !== t.side && m.active &&
+            Math.sqrt((m.x - t.x) ** 2 + (m.y - t.y) ** 2) < t.range
+        );
         if (target) {
           audio.playArrow();
-          this.projectiles.push(new Projectile(t.x, t.y, target, t.damage, '#fde047', () => {
-             target.hp -= t.damage;
-             addDmg(t.side, t.damage);
-          }));
+          const proj = new Projectile(this.scene, t.x, t.y, target, t.damage, '#fde047', () => {
+            target.hp -= t.damage;
+            addDmg(t.side, t.damage);
+          });
+          this.projectiles.push(proj);
           t.cooldown = 90;
         }
       }
-    });
+      t.redraw();
+    }
 
-    this.heroes.forEach(h => h.update(this.minions, this.masks));
+    // Heroes
+    for (const h of this.heroes) {
+      h.updateHero(this.minions, this.masks);
+    }
 
+    // Clean up destroyed masks
+    this.masks = this.masks.filter(m => m.active);
+
+    // Win condition
     if (this.blueBaseHP <= 0 || this.redBaseHP <= 0) {
+      this.gameOver = true;
       this.stats.winner = this.blueBaseHP <= 0 ? 'Red' : 'Blue';
       this.stats.matchTime = Math.floor(this.matchTime / 60);
-      this.onGameOver(this.stats);
+      this.scene.scene.stop('HudScene');
+      this.scene.scene.start('GameOverScene', { stats: this.stats });
     }
   }
 
@@ -159,12 +176,15 @@ export class GameEngine {
     const lanes = [Lane.TOP, Lane.MID, Lane.BOT];
     lanes.forEach(lane => {
       for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-          this.minions.push(new Minion(CANVAS_WIDTH - 80, 80, 'Blue', MinionType.FIGHTER, lane));
-          this.minions.push(new Minion(80, CANVAS_HEIGHT - 80, 'Red', MinionType.FIGHTER, lane));
+        this.scene.time.delayedCall(i * 500, () => {
+          if (this.gameOver) return;
+          const blueMinion = new Minion(this.scene, CANVAS_WIDTH - 80, 80, 'Blue', MinionType.FIGHTER, lane);
+          const redMinion = new Minion(this.scene, 80, CANVAS_HEIGHT - 80, 'Red', MinionType.FIGHTER, lane);
+          this.minions.push(blueMinion);
+          this.minions.push(redMinion);
           this.stats.blueMinionsSpawned++;
           this.stats.redMinionsSpawned++;
-        }, i * 500);
+        });
       }
     });
   }
@@ -180,6 +200,6 @@ export class GameEngine {
     const type = weightedPool[Math.floor(Math.random() * weightedPool.length)];
     const x = 150 + Math.random() * (CANVAS_WIDTH - 300);
     const y = 150 + Math.random() * (CANVAS_HEIGHT - 300);
-    this.masks.push(new Mask(x, y, type));
+    this.masks.push(new GameMask(this.scene, x, y, type));
   }
 }
