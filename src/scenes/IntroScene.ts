@@ -30,7 +30,7 @@ export class IntroScene extends Phaser.Scene {
     // Title
     const title = this.add.text(cx, 70, 'MASK THE MINION', {
       fontSize: '64px',
-      fontFamily: 'sans-serif',
+      fontFamily: 'LifeCraft',
       fontStyle: 'bold italic',
       color: '#ffffff',
     }).setOrigin(0.5);
@@ -46,7 +46,7 @@ export class IntroScene extends Phaser.Scene {
     // Subtitle
     const subtitle = this.add.text(cx, 140, 'HEROES OF THE MOBA LEAGUE OF MASKS', {
       fontSize: '16px',
-      fontFamily: 'sans-serif',
+      fontFamily: 'LifeCraft',
       fontStyle: 'bold',
       color: '#94a3b8',
       letterSpacing: 8,
@@ -67,10 +67,10 @@ export class IntroScene extends Phaser.Scene {
     redGfx.strokeRoundedRect(cx - boxW - 20, boxY, boxW, boxH, 16);
 
     this.add.text(cx - boxW + 10, boxY + 14, 'P1  RED TEAM (WASD)', {
-      fontSize: '14px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#ef4444',
+      fontSize: '14px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ef4444',
     });
     this.add.text(cx - boxW + 10, boxY + 40, 'Starts at Bottom-Left. Collect masks\nand deliver them to your minions!', {
-      fontSize: '11px', fontFamily: 'sans-serif', color: '#94a3b8', lineSpacing: 4,
+      fontSize: '11px', fontFamily: 'LifeCraft', color: '#94a3b8', lineSpacing: 4,
     });
 
     // Blue team box
@@ -81,10 +81,10 @@ export class IntroScene extends Phaser.Scene {
     blueGfx.strokeRoundedRect(cx + 20, boxY, boxW, boxH, 16);
 
     this.add.text(cx + 50, boxY + 14, 'P2  BLUE TEAM (ARROWS)', {
-      fontSize: '14px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#3b82f6',
+      fontSize: '14px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#3b82f6',
     });
     this.add.text(cx + 50, boxY + 40, 'Starts at Top-Right. Defend your base!\nEnemy minions at your corner = lost heart.', {
-      fontSize: '11px', fontFamily: 'sans-serif', color: '#94a3b8', lineSpacing: 4,
+      fontSize: '11px', fontFamily: 'LifeCraft', color: '#94a3b8', lineSpacing: 4,
     });
 
     // Mask parade panel
@@ -110,18 +110,18 @@ export class IntroScene extends Phaser.Scene {
 
       // Name
       const name = this.add.text(mx, my + 40, item.name, {
-        fontSize: '12px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#ffffff',
+        fontSize: '12px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
       }).setOrigin(0.5).setAlpha(0);
 
       // Nickname
       const nickname = this.add.text(mx, my + 58, item.nickname, {
-        fontSize: '9px', fontFamily: 'monospace', fontStyle: 'bold', color: '#fbbf24',
+        fontSize: '9px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#fbbf24',
         letterSpacing: 3,
       }).setOrigin(0.5).setAlpha(0);
 
       // Effect
       const effect = this.add.text(mx, my + 80, item.effect, {
-        fontSize: '9px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#94a3b8',
+        fontSize: '9px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#94a3b8',
       }).setOrigin(0.5).setAlpha(0);
 
       const delay = i * 400;
@@ -145,7 +145,7 @@ export class IntroScene extends Phaser.Scene {
     btnContainer.add(btnGfx);
 
     const btnText = this.add.text(0, 0, 'BATTLE START', {
-      fontSize: '28px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#0f172a',
+      fontSize: '28px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#0f172a',
     }).setOrigin(0.5);
     btnContainer.add(btnText);
 

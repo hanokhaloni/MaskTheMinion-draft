@@ -43,7 +43,7 @@ export class Hero extends Phaser.GameObjects.Container {
     // Label
     this.labelText = scene.add.text(0, 14, side === 'Red' ? 'P1' : 'P2', {
       fontSize: '12px',
-      fontFamily: 'sans-serif',
+      fontFamily: 'LifeCraft',
       fontStyle: 'bold',
       color: '#ffffff',
     }).setOrigin(0.5);

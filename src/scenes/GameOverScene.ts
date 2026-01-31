@@ -25,14 +25,14 @@ export class GameOverScene extends Phaser.Scene {
 
     // "Victory Achieved"
     this.add.text(cx, cy - 210, 'VICTORY ACHIEVED', {
-      fontSize: '12px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#64748b',
+      fontSize: '12px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#64748b',
       letterSpacing: 6,
     }).setOrigin(0.5);
 
     // Winner text
     const winnerColor = stats.winner === 'Blue' ? '#3b82f6' : '#ef4444';
     const winnerText = this.add.text(cx, cy - 160, `TEAM ${stats.winner?.toUpperCase()}`, {
-      fontSize: '56px', fontFamily: 'sans-serif', fontStyle: 'bold', color: winnerColor,
+      fontSize: '56px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: winnerColor,
     }).setOrigin(0.5);
     winnerText.setAlpha(0);
     this.tweens.add({ targets: winnerText, alpha: 1, duration: 800, ease: 'Power2' });
@@ -49,22 +49,22 @@ export class GameOverScene extends Phaser.Scene {
     redPanel.strokeRoundedRect(cx - 330, colY, colW, 150, 20);
 
     this.add.text(cx - 330 + 20, colY + 15, 'RED PERFORMANCE', {
-      fontSize: '11px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#f87171',
+      fontSize: '11px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#f87171',
       letterSpacing: 3,
     });
 
     this.add.text(cx - 330 + 20, colY + 50, 'Total Damage', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#64748b',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#64748b',
     });
     this.add.text(cx - 330 + colW - 20, colY + 50, String(Math.floor(stats.redDamageDealt)), {
-      fontSize: '20px', fontFamily: 'monospace', color: '#ffffff',
+      fontSize: '20px', fontFamily: 'LifeCraft', color: '#ffffff',
     }).setOrigin(1, 0);
 
     this.add.text(cx - 330 + 20, colY + 90, 'Army Size', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#64748b',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#64748b',
     });
     this.add.text(cx - 330 + colW - 20, colY + 90, String(stats.redMinionsSpawned), {
-      fontSize: '20px', fontFamily: 'monospace', color: '#ffffff',
+      fontSize: '20px', fontFamily: 'LifeCraft', color: '#ffffff',
     }).setOrigin(1, 0);
 
     // Blue performance
@@ -75,22 +75,22 @@ export class GameOverScene extends Phaser.Scene {
     bluePanel.strokeRoundedRect(cx + 50, colY, colW, 150, 20);
 
     this.add.text(cx + 70, colY + 15, 'BLUE PERFORMANCE', {
-      fontSize: '11px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#60a5fa',
+      fontSize: '11px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#60a5fa',
       letterSpacing: 3,
     });
 
     this.add.text(cx + 70, colY + 50, 'Total Damage', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#64748b',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#64748b',
     });
     this.add.text(cx + 50 + colW - 20, colY + 50, String(Math.floor(stats.blueDamageDealt)), {
-      fontSize: '20px', fontFamily: 'monospace', color: '#ffffff',
+      fontSize: '20px', fontFamily: 'LifeCraft', color: '#ffffff',
     }).setOrigin(1, 0);
 
     this.add.text(cx + 70, colY + 90, 'Army Size', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#64748b',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#64748b',
     });
     this.add.text(cx + 50 + colW - 20, colY + 90, String(stats.blueMinionsSpawned), {
-      fontSize: '20px', fontFamily: 'monospace', color: '#ffffff',
+      fontSize: '20px', fontFamily: 'LifeCraft', color: '#ffffff',
     }).setOrigin(1, 0);
 
     // Match duration
@@ -99,11 +99,11 @@ export class GameOverScene extends Phaser.Scene {
     const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
     this.add.text(cx - 60, cy + 120, 'MATCH DURATION', {
-      fontSize: '11px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#64748b',
+      fontSize: '11px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#64748b',
       letterSpacing: 4,
     });
     this.add.text(cx + 120, cy + 118, timeStr, {
-      fontSize: '16px', fontFamily: 'monospace', fontStyle: 'bold', color: '#ffffff',
+      fontSize: '16px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: '#1e293b',
       padding: { x: 8, y: 4 },
     });
@@ -121,7 +121,7 @@ export class GameOverScene extends Phaser.Scene {
     btnContainer.add(btnGfx);
 
     const btnText = this.add.text(0, 0, 'RE-ENTER THE ARENA', {
-      fontSize: '18px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#ffffff',
+      fontSize: '18px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5);
     btnContainer.add(btnText);
 

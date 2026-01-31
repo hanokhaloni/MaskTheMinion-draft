@@ -28,7 +28,7 @@ export class HudScene extends Phaser.Scene {
     redPanel.strokeRoundedRect(20, 20, 180, 70, 12);
 
     this.add.text(30, 28, 'P1 - RED CORE', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#f87171',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#f87171',
       letterSpacing: 3,
     });
 
@@ -47,7 +47,7 @@ export class HudScene extends Phaser.Scene {
     timerPanel.strokeRoundedRect(w / 2 - 80, 20, 160, 44, 22);
 
     this.timerText = this.add.text(w / 2, 42, '0:00', {
-      fontSize: '28px', fontFamily: 'monospace', fontStyle: 'bold', color: '#ffffff',
+      fontSize: '28px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5);
 
     // Wave countdown
@@ -58,7 +58,7 @@ export class HudScene extends Phaser.Scene {
     wavePanel.strokeRoundedRect(w / 2 - 50, 70, 100, 24, 12);
 
     this.waveText = this.add.text(w / 2, 82, 'WAVE: 5s', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#e2e8f0',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#e2e8f0',
       letterSpacing: 2,
     }).setOrigin(0.5);
 
@@ -70,7 +70,7 @@ export class HudScene extends Phaser.Scene {
     bluePanel.strokeRoundedRect(w - 200, 20, 180, 70, 12);
 
     this.add.text(w - 190, 28, 'P2 - BLUE CORE', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#60a5fa',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#60a5fa',
       letterSpacing: 3,
     });
 
@@ -83,7 +83,7 @@ export class HudScene extends Phaser.Scene {
 
     // --- Control hint (bottom-left) ---
     this.add.text(30, this.cameras.main.height - 30, 'P1 RED (WASD) \u2022 P2 BLUE (ARROWS)', {
-      fontSize: '10px', fontFamily: 'sans-serif', fontStyle: 'bold', color: '#ffffff',
+      fontSize: '10px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
       letterSpacing: 3,
     }).setAlpha(0.4);
   }
