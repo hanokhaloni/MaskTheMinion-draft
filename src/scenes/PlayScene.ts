@@ -6,7 +6,7 @@ import { Tower } from '../objects/Tower';
 
 const MIN_ZOOM = 1.0;
 const MAX_ZOOM = 2.2;
-const PADDING = 250;
+const PADDING = 300;
 const LERP_SPEED = 0.04;
 
 export class PlayScene extends Phaser.Scene {
