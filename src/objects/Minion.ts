@@ -48,7 +48,7 @@ export class Minion extends Phaser.GameObjects.Container {
     // Shadow
     const shadow = scene.add.graphics();
     shadow.fillStyle(0x000000, 0.3);
-    shadow.fillEllipse(0, this.radius - 2, this.radius * 1.6, 8);
+    shadow.fillEllipse(0, this.radius - 12, this.radius * 1.6, 8);
     this.add(shadow);
 
     // Character sprite

@@ -30,7 +30,7 @@ export class Hero extends Phaser.GameObjects.Container {
     // Shadow
     const shadow = scene.add.graphics();
     shadow.fillStyle(0x000000, 0.4);
-    shadow.fillEllipse(0, this.radius - 2, this.radius * 1.8, 12);
+    shadow.fillEllipse(0, this.radius - 10, this.radius * 1.8, 12);
     this.add(shadow);
 
     // Character sprite
