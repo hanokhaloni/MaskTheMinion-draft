@@ -69,6 +69,7 @@ export class Tower extends Phaser.GameObjects.Container {
     // Smoke effect on destruction
     if (this.hp <= 0 && !this.destroyed) {
       this.destroyed = true;
+      this.scene.sound.play(this.side === 'Blue' ? 'blueTowerDestroyed' : 'redTowerDestroyed');
       this.spawnSmoke();
     }
 

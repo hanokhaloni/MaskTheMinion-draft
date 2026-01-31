@@ -73,6 +73,7 @@ export class GameEngine {
 
     if (this.waveTimer <= 0) {
       this.spawnWave();
+      this.scene.sound.play('goWaveGo');
       this.waveTimer = 25 * 60;
     }
 
@@ -108,8 +109,10 @@ export class GameEngine {
       if (m.active && distToBase < 40) {
         if (m.side === 'Blue') {
           this.redBaseHP = Math.max(0, this.redBaseHP - 1);
+          this.scene.sound.play('redCastleHit');
         } else {
           this.blueBaseHP = Math.max(0, this.blueBaseHP - 1);
+          this.scene.sound.play('blueCastleHit');
         }
         m.hp = 0;
         m.active = false;
@@ -167,6 +170,7 @@ export class GameEngine {
     if (this.blueBaseHP <= 0 || this.redBaseHP <= 0) {
       this.gameOver = true;
       this.stats.winner = this.blueBaseHP <= 0 ? 'Red' : 'Blue';
+      this.scene.sound.play(this.stats.winner === 'Blue' ? 'blueWins' : 'redWins');
       this.stats.matchTime = Math.floor(this.matchTime / 60);
       this.scene.scene.stop('HudScene');
       this.scene.scene.start('GameOverScene', { stats: this.stats });
