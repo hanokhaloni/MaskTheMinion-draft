@@ -108,22 +108,17 @@ export class PlayScene extends Phaser.Scene {
     bg.setDepth(0);
 
     // Bases
-    const gfx = this.add.graphics();
-    gfx.setDepth(0);
-
     const redBase = [80, CANVAS_HEIGHT - 80];
     const blueBase = [CANVAS_WIDTH - 80, 80];
 
-    // Red base
-    gfx.fillStyle(0xdc2626, 0.2);
-    gfx.fillCircle(redBase[0], redBase[1], 120);
-    gfx.lineStyle(4, 0xdc2626, 1);
-    gfx.strokeCircle(redBase[0], redBase[1], 120);
+    // Red base castle
+    const redCastle = this.add.image(redBase[0], redBase[1], 'redCastle');
+    redCastle.setDisplaySize(240, 240);
+    redCastle.setDepth(0);
 
-    // Blue base
-    gfx.fillStyle(0x2563eb, 0.2);
-    gfx.fillCircle(blueBase[0], blueBase[1], 120);
-    gfx.lineStyle(4, 0x2563eb, 1);
-    gfx.strokeCircle(blueBase[0], blueBase[1], 120);
+    // Blue base castle
+    const blueCastle = this.add.image(blueBase[0], blueBase[1], 'blueCastle');
+    blueCastle.setDisplaySize(240, 240);
+    blueCastle.setDepth(0);
   }
 }

@@ -15,6 +15,8 @@ export class BootScene extends Phaser.Scene {
       frameHeight: 1024,
     });
     this.load.image('background', 'src/background.png');
+    this.load.image('redCastle', 'src/redCastle.png');
+    this.load.image('blueCastle', 'src/blueCastle.png');
   }
 
   create() {
