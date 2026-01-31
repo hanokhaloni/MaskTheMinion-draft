@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Migrate game from React + Canvas 2D to Phaser 3\n\nReplace React/Tailwind UI with Phaser scenes and game objects.\nRemove all Google AI Studio / Gemini dependencies. All gameplay\nmechanics preserved: 3-lane MOBA, mask pickup/delivery, type\nadvantages, tower firing, wave spawning, and 2-player input.\n\n- Remove react, react-dom, @vitejs/plugin-react; add phaser ^3.80\n- Rewrite vite.config.ts, tsconfig.json, index.html for plain Vite\n- Create Phaser entry point \\(src/main.ts\\) with 5 scenes\n- Port IntroScene, PlayScene, HudScene, GameOverScene to Phaser\n- Port Hero, Minion, Tower, Mask, Projectile as Phaser Containers\n- Port GameEngine adapted for Phaser scene lifecycle\n- Fix: towers hide when destroyed, second round works, button\n  hover scales from center via Container wrapping\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "Bash(git push:*)",
+      "Bash(npx --yes image-size:*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(where:*)"
     ]
   }
 }

@@ -10,6 +10,10 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 341,
       frameHeight: 512,
     });
+    this.load.spritesheet('tower', 'src/tower.png', {
+      frameWidth: 341,
+      frameHeight: 1024,
+    });
   }
 
   create() {

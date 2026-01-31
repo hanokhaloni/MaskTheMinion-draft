@@ -134,21 +134,22 @@ export class GameEngine {
 
     // Towers fire
     for (const t of this.towers) {
-      if (t.hp <= 0) continue;
-      if (t.cooldown > 0) t.cooldown--;
-      if (t.cooldown <= 0) {
-        const target = this.minions.find(
-          m => m.side !== t.side && m.active &&
-            Math.sqrt((m.x - t.x) ** 2 + (m.y - t.y) ** 2) < t.range
-        );
-        if (target) {
-          audio.playArrow();
-          const proj = new Projectile(this.scene, t.x, t.y, target, t.damage, '#fde047', () => {
-            target.hp -= t.damage;
-            addDmg(t.side, t.damage);
-          });
-          this.projectiles.push(proj);
-          t.cooldown = 90;
+      if (t.hp > 0) {
+        if (t.cooldown > 0) t.cooldown--;
+        if (t.cooldown <= 0) {
+          const target = this.minions.find(
+            m => m.side !== t.side && m.active &&
+              Math.sqrt((m.x - t.x) ** 2 + (m.y - t.y) ** 2) < t.range
+          );
+          if (target) {
+            audio.playArrow();
+            const proj = new Projectile(this.scene, t.x, t.y, target, t.damage, '#fde047', () => {
+              target.hp -= t.damage;
+              addDmg(t.side, t.damage);
+            });
+            this.projectiles.push(proj);
+            t.cooldown = 90;
+          }
         }
       }
       t.redraw();
