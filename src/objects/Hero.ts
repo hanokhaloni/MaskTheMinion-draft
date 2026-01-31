@@ -22,6 +22,7 @@ export class Hero extends Phaser.GameObjects.Container {
   private auraGfx: Phaser.GameObjects.Graphics;
 
   public keys: Record<string, boolean> = {};
+  private bobTimer = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, side: 'Blue' | 'Red') {
     super(scene, x, y);
@@ -108,6 +109,14 @@ export class Hero extends Phaser.GameObjects.Container {
 
     this.x = nextX;
     this.y = nextY;
+
+    // Float bob while moving
+    if (moveX !== 0 || moveY !== 0) {
+      this.bobTimer++;
+      this.sprite.y = -8 + Math.sin(this.bobTimer * 0.15) * 3;
+    } else {
+      this.sprite.y = -8;
+    }
 
     // Mask pickup
     for (const mask of masks) {

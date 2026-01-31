@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, PATH_WIDTH } from '../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
 import { GameEngine } from '../engine/GameEngine';
 import { Hero } from '../objects/Hero';
 import { Tower } from '../objects/Tower';
@@ -99,57 +99,17 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private drawMapBackground() {
+    const bg = this.add.image(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 'background');
+    bg.setDisplaySize(CANVAS_WIDTH, CANVAS_HEIGHT);
+    bg.setDepth(0);
+
+    // Bases
     const gfx = this.add.graphics();
     gfx.setDepth(0);
 
-    // Background gradient (radial via two fills)
-    gfx.fillStyle(0x020617, 1);
-    gfx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    // Lighter center
-    gfx.fillStyle(0x0f172a, 0.6);
-    gfx.fillCircle(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 500);
-
-    // Lane paths
     const redBase = [80, CANVAS_HEIGHT - 80];
     const blueBase = [CANVAS_WIDTH - 80, 80];
-    const topLeft = [80, 80];
-    const botRight = [CANVAS_WIDTH - 80, CANVAS_HEIGHT - 80];
 
-    gfx.lineStyle(PATH_WIDTH, 0x1e293b, 1);
-
-    // TOP LANE
-    gfx.beginPath();
-    gfx.moveTo(redBase[0], redBase[1]);
-    gfx.lineTo(topLeft[0], topLeft[1]);
-    gfx.lineTo(blueBase[0], blueBase[1]);
-    gfx.strokePath();
-
-    // MID LANE
-    gfx.beginPath();
-    gfx.moveTo(redBase[0], redBase[1]);
-    gfx.lineTo(blueBase[0], blueBase[1]);
-    gfx.strokePath();
-
-    // BOT LANE
-    gfx.beginPath();
-    gfx.moveTo(redBase[0], redBase[1]);
-    gfx.lineTo(botRight[0], botRight[1]);
-    gfx.lineTo(blueBase[0], blueBase[1]);
-    gfx.strokePath();
-
-    // Dashed lane center lines
-    const dashGfx = this.add.graphics();
-    dashGfx.setDepth(0);
-    dashGfx.lineStyle(2, 0xffffff, 0.05);
-
-    // Draw dashes manually (Phaser Graphics doesn't have setLineDash)
-    this.drawDashedLine(dashGfx, redBase[0], redBase[1], topLeft[0], topLeft[1]);
-    this.drawDashedLine(dashGfx, topLeft[0], topLeft[1], blueBase[0], blueBase[1]);
-    this.drawDashedLine(dashGfx, redBase[0], redBase[1], blueBase[0], blueBase[1]);
-    this.drawDashedLine(dashGfx, redBase[0], redBase[1], botRight[0], botRight[1]);
-    this.drawDashedLine(dashGfx, botRight[0], botRight[1], blueBase[0], blueBase[1]);
-
-    // Bases
     // Red base
     gfx.fillStyle(0xdc2626, 0.2);
     gfx.fillCircle(redBase[0], redBase[1], 120);
@@ -161,28 +121,5 @@ export class PlayScene extends Phaser.Scene {
     gfx.fillCircle(blueBase[0], blueBase[1], 120);
     gfx.lineStyle(4, 0x2563eb, 1);
     gfx.strokeCircle(blueBase[0], blueBase[1], 120);
-  }
-
-  private drawDashedLine(gfx: Phaser.GameObjects.Graphics, x1: number, y1: number, x2: number, y2: number) {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const dashLen = 10;
-    const gapLen = 20;
-    const stepLen = dashLen + gapLen;
-    const steps = Math.floor(dist / stepLen);
-    const nx = dx / dist;
-    const ny = dy / dist;
-
-    for (let i = 0; i < steps; i++) {
-      const sx = x1 + nx * i * stepLen;
-      const sy = y1 + ny * i * stepLen;
-      const ex = sx + nx * dashLen;
-      const ey = sy + ny * dashLen;
-      gfx.beginPath();
-      gfx.moveTo(sx, sy);
-      gfx.lineTo(ex, ey);
-      gfx.strokePath();
-    }
   }
 }

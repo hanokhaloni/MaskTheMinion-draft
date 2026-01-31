@@ -38,6 +38,7 @@ export class Minion extends Phaser.GameObjects.Container {
   private maskRingGfx: Phaser.GameObjects.Graphics;
   private hpBarGfx: Phaser.GameObjects.Graphics;
   private dying = false;
+  private bobTimer = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, side: 'Blue' | 'Red', type: MinionType, lane: Lane) {
     super(scene, x, y);
@@ -159,6 +160,9 @@ export class Minion extends Phaser.GameObjects.Container {
       if (target.x < this.x) this.sprite.setFlipX(true);
       else if (target.x > this.x) this.sprite.setFlipX(false);
 
+      // Reset bob when standing to fight
+      this.sprite.y = -6;
+
       if (this.cooldown <= 0) {
         this.attack(target, projectiles, addDmg);
         this.cooldown = 60;
@@ -182,6 +186,10 @@ export class Minion extends Phaser.GameObjects.Container {
         const vy = (dy / dist) * this.speed;
         this.x += vx;
         this.y += vy;
+
+        // Float bob while moving
+        this.bobTimer++;
+        this.sprite.y = -6 + Math.sin(this.bobTimer * 0.15) * 2;
       }
     }
 
@@ -189,6 +197,25 @@ export class Minion extends Phaser.GameObjects.Container {
   }
 
   attack(target: Minion | Tower, projectiles: Projectile[], addDmg: (side: string, dmg: number) => void) {
+    // Attack tilt animation
+    this.scene?.tweens.add({
+      targets: this.sprite,
+      angle: -12,
+      duration: 60,
+      yoyo: true,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        this.scene?.tweens.add({
+          targets: this.sprite,
+          angle: 10,
+          duration: 60,
+          yoyo: true,
+          ease: 'Sine.easeInOut',
+          onComplete: () => { this.sprite.angle = 0; },
+        });
+      },
+    });
+
     let multiplier = 1;
     if (target instanceof Minion) {
       if (this.type === MinionType.FIGHTER && target.type === MinionType.MAGE) multiplier = 2;
@@ -214,6 +241,34 @@ export class Minion extends Phaser.GameObjects.Container {
   private startDeathAnim() {
     if (this.dying) return;
     this.dying = true;
+
+    // Red gore explosion particles
+    if (this.scene) {
+      for (let i = 0; i < 8; i++) {
+        const goreGfx = this.scene.add.graphics();
+        goreGfx.setDepth(35);
+        const size = 2 + Math.random() * 3;
+        const color = Math.random() > 0.5 ? 0xff0000 : 0xcc0000;
+        goreGfx.fillStyle(color, 1);
+        goreGfx.fillCircle(0, 0, size);
+        goreGfx.setPosition(this.x, this.y);
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 15 + Math.random() * 20;
+        this.scene.tweens.add({
+          targets: goreGfx,
+          x: this.x + Math.cos(angle) * dist,
+          y: this.y + Math.sin(angle) * dist,
+          alpha: 0,
+          scaleX: 0.3,
+          scaleY: 0.3,
+          duration: 250 + Math.random() * 200,
+          ease: 'Quad.easeOut',
+          onComplete: () => goreGfx.destroy(),
+        });
+      }
+    }
+
     this.scene?.tweens.add({
       targets: this,
       alpha: 0,

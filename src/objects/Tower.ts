@@ -20,6 +20,7 @@ export class Tower extends Phaser.GameObjects.Container {
   private sprite: Phaser.GameObjects.Sprite;
   private hpBarGfx: Phaser.GameObjects.Graphics;
   private lastFrame = -1;
+  private destroyed = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, side: 'Blue' | 'Red') {
     super(scene, x, y);
@@ -65,6 +66,12 @@ export class Tower extends Phaser.GameObjects.Container {
       this.lastFrame = frame;
     }
 
+    // Smoke effect on destruction
+    if (this.hp <= 0 && !this.destroyed) {
+      this.destroyed = true;
+      this.spawnSmoke();
+    }
+
     // No HP bar when destroyed
     if (this.hp <= 0) return;
 
@@ -78,5 +85,32 @@ export class Tower extends Phaser.GameObjects.Container {
     const hpColor = this.side === 'Blue' ? 0x3b82f6 : 0xef4444;
     this.hpBarGfx.fillStyle(hpColor, 1);
     this.hpBarGfx.fillRect(barX, barY, barW * hpRatio, barH);
+  }
+
+  private spawnSmoke() {
+    if (!this.scene) return;
+    for (let i = 0; i < 10; i++) {
+      const smokeGfx = this.scene.add.graphics();
+      smokeGfx.setDepth(25);
+      const size = 4 + Math.random() * 6;
+      const grey = [0x000000, 0x222222, 0x444444][(Math.random() * 3)];
+      smokeGfx.fillStyle(grey, 0.7);
+      smokeGfx.fillCircle(0, 0, size);
+      const offsetX = (Math.random() - 0.5) * 30;
+      smokeGfx.setPosition(this.x + offsetX, this.y - 20);
+
+      this.scene.tweens.add({
+        targets: smokeGfx,
+        y: this.y - 60 - Math.random() * 40,
+        x: this.x + offsetX + (Math.random() - 0.5) * 30,
+        alpha: 0,
+        scaleX: 2,
+        scaleY: 2,
+        duration: 500 + Math.random() * 400,
+        delay: i * 40,
+        ease: 'Quad.easeOut',
+        onComplete: () => smokeGfx.destroy(),
+      });
+    }
   }
 }

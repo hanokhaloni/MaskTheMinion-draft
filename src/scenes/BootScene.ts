@@ -14,6 +14,7 @@ export class BootScene extends Phaser.Scene {
       frameWidth: 341,
       frameHeight: 1024,
     });
+    this.load.image('background', 'src/background.png');
   }
 
   create() {
