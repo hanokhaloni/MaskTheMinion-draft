@@ -6,28 +6,28 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet('characters', 'src/characters.png', {
+    this.load.spritesheet('characters', 'characters.png', {
       frameWidth: 341,
       frameHeight: 512,
     });
-    this.load.spritesheet('tower', 'src/tower.png', {
+    this.load.spritesheet('tower', 'tower.png', {
       frameWidth: 341,
       frameHeight: 1024,
     });
-    this.load.image('background', 'src/background.png');
-    this.load.image('redCastle', 'src/redCastle.png');
-    this.load.image('blueCastle', 'src/blueCastle.png');
+    this.load.image('background', 'background.png');
+    this.load.image('redCastle', 'redCastle.png');
+    this.load.image('blueCastle', 'blueCastle.png');
 
     // Sound effects
-    this.load.audio('blueCastleHit', 'src/sounds/blue castle was hit.mp3');
-    this.load.audio('blueTowerDestroyed', 'src/sounds/blue tower has been destroyed.mp3');
-    this.load.audio('blueWins', 'src/sounds/blue wins.mp3');
-    this.load.audio('goWaveGo', 'src/sounds/go wave go.mp3');
-    this.load.audio('redCastleHit', 'src/sounds/red castle was  hit.mp3');
-    this.load.audio('redTowerDestroyed', 'src/sounds/red tower has been destroyed.mp3');
-    this.load.audio('redWins', 'src/sounds/red wins.mp3');
-    this.load.audio('battleBegins', 'src/sounds/the battle begins.mp3');
-    this.load.audio('statsBlabber', 'src/sounds/statistics screen blabber.mp3');
+    this.load.audio('blueCastleHit', 'sounds/blue castle was hit.mp3');
+    this.load.audio('blueTowerDestroyed', 'sounds/blue tower has been destroyed.mp3');
+    this.load.audio('blueWins', 'sounds/blue wins.mp3');
+    this.load.audio('goWaveGo', 'sounds/go wave go.mp3');
+    this.load.audio('redCastleHit', 'sounds/red castle was  hit.mp3');
+    this.load.audio('redTowerDestroyed', 'sounds/red tower has been destroyed.mp3');
+    this.load.audio('redWins', 'sounds/red wins.mp3');
+    this.load.audio('battleBegins', 'sounds/the battle begins.mp3');
+    this.load.audio('statsBlabber', 'sounds/statistics screen blabber.mp3');
   }
 
   create() {
