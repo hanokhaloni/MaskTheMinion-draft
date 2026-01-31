@@ -51,7 +51,7 @@ export class Hero extends Phaser.GameObjects.Container {
 
     // Mask icon (above head)
     this.maskText = scene.add.text(0, -55, '', {
-      fontSize: '48px',
+      fontSize: '32px',
       fontFamily: 'serif',
     }).setOrigin(0.5).setVisible(false);
     this.add(this.maskText);
