@@ -44,7 +44,7 @@ export class IntroScene extends Phaser.Scene {
     this.tweens.add({ targets: maskEmoji, alpha: { from: 0.6, to: 1 }, duration: 1200, yoyo: true, repeat: -1 });
 
     // Subtitle
-    const subtitle = this.add.text(cx, 140, 'HEROES OF THE MOBA MASK LEAGUE', {
+    const subtitle = this.add.text(cx, 140, 'HEROES OF THE MOBA LEAGUE OF MASKS', {
       fontSize: '16px',
       fontFamily: 'sans-serif',
       fontStyle: 'bold',

@@ -13,6 +13,9 @@ export class GameOverScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor('#020617');
 
+    // Play win announcement
+    this.sound.play(stats.winner === 'Blue' ? 'blueWins' : 'redWins');
+
     // Panel background
     const panel = this.add.graphics();
     panel.fillStyle(0x0f172a, 0.95);

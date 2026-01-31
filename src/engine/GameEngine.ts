@@ -170,10 +170,14 @@ export class GameEngine {
     if (this.blueBaseHP <= 0 || this.redBaseHP <= 0) {
       this.gameOver = true;
       this.stats.winner = this.blueBaseHP <= 0 ? 'Red' : 'Blue';
-      this.scene.sound.play(this.stats.winner === 'Blue' ? 'blueWins' : 'redWins');
       this.stats.matchTime = Math.floor(this.matchTime / 60);
-      this.scene.scene.stop('HudScene');
-      this.scene.scene.start('GameOverScene', { stats: this.stats });
+
+      // 2-second camera shake, then transition to GameOver
+      this.scene.cameras.main.shake(2000, 0.01);
+      this.scene.cameras.main.once('camerashakecomplete', () => {
+        this.scene.scene.stop('HudScene');
+        this.scene.scene.start('GameOverScene', { stats: this.stats });
+      });
     }
   }
 
