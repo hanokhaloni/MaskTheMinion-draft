@@ -4,6 +4,11 @@ import { GameEngine } from '../engine/GameEngine';
 import { Hero } from '../objects/Hero';
 import { Tower } from '../objects/Tower';
 
+const MIN_ZOOM = 1.0;
+const MAX_ZOOM = 2.2;
+const PADDING = 250;
+const LERP_SPEED = 0.04;
+
 export class PlayScene extends Phaser.Scene {
   private engine!: GameEngine;
   private keyState: Record<string, boolean> = {};
@@ -48,6 +53,9 @@ export class PlayScene extends Phaser.Scene {
       this.syncKeys();
     });
 
+    // Set camera world bounds so camera won't scroll outside the game world when zoomed in
+    this.cameras.main.setBounds(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
     // Launch HUD overlay scene
     this.scene.launch('HudScene', { engine: this.engine });
   }
@@ -61,6 +69,32 @@ export class PlayScene extends Phaser.Scene {
   update() {
     if (this.engine) {
       this.engine.update();
+
+      // Dynamic camera zoom based on hero distance
+      const heroes = this.engine.heroes;
+      if (heroes.length >= 2) {
+        const h1 = heroes[0];
+        const h2 = heroes[1];
+
+        // Midpoint between heroes
+        const midX = (h1.x + h2.x) / 2;
+        const midY = (h1.y + h2.y) / 2;
+
+        // Compute required zoom to keep both heroes visible with padding
+        const dx = Math.abs(h1.x - h2.x) + PADDING;
+        const dy = Math.abs(h1.y - h2.y) + PADDING;
+        const zoomX = CANVAS_WIDTH / dx;
+        const zoomY = CANVAS_HEIGHT / dy;
+        const targetZoom = Phaser.Math.Clamp(Math.min(zoomX, zoomY), MIN_ZOOM, MAX_ZOOM);
+
+        // Smooth lerp zoom and position
+        const cam = this.cameras.main;
+        cam.zoom += (targetZoom - cam.zoom) * LERP_SPEED;
+        cam.centerOn(
+          cam.scrollX + CANVAS_WIDTH / 2 + (midX - (cam.scrollX + CANVAS_WIDTH / 2)) * LERP_SPEED,
+          cam.scrollY + CANVAS_HEIGHT / 2 + (midY - (cam.scrollY + CANVAS_HEIGHT / 2)) * LERP_SPEED,
+        );
+      }
     }
   }
 
