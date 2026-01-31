@@ -42,7 +42,7 @@ export class Hero extends Phaser.GameObjects.Container {
 
     // Label
     this.labelText = scene.add.text(0, 14, side === 'Red' ? 'P1' : 'P2', {
-      fontSize: '12px',
+      fontSize: '18px',
       fontFamily: 'LifeCraft',
       fontStyle: 'bold',
       color: '#ffffff',
@@ -51,7 +51,7 @@ export class Hero extends Phaser.GameObjects.Container {
 
     // Mask icon (above head)
     this.maskText = scene.add.text(0, -55, '', {
-      fontSize: '32px',
+      fontSize: '48px',
       fontFamily: 'serif',
     }).setOrigin(0.5).setVisible(false);
     this.add(this.maskText);

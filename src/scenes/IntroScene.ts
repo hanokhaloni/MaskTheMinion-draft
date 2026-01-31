@@ -29,7 +29,7 @@ export class IntroScene extends Phaser.Scene {
 
     // Title
     const title = this.add.text(cx, 70, 'MASK THE MINION', {
-      fontSize: '64px',
+      fontSize: '96px',
       fontFamily: 'LifeCraft',
       fontStyle: 'bold italic',
       color: '#ffffff',
@@ -39,13 +39,13 @@ export class IntroScene extends Phaser.Scene {
 
     // Mask emoji top-right of title
     const maskEmoji = this.add.text(cx + 300, 40, '\uD83C\uDFAD', {
-      fontSize: '48px',
+      fontSize: '72px',
     }).setOrigin(0.5).setAngle(12);
     this.tweens.add({ targets: maskEmoji, alpha: { from: 0.6, to: 1 }, duration: 1200, yoyo: true, repeat: -1 });
 
     // Subtitle
     const subtitle = this.add.text(cx, 140, 'HEROES OF THE MOBA LEAGUE OF MASKS', {
-      fontSize: '16px',
+      fontSize: '24px',
       fontFamily: 'LifeCraft',
       fontStyle: 'bold',
       color: '#94a3b8',
@@ -67,10 +67,10 @@ export class IntroScene extends Phaser.Scene {
     redGfx.strokeRoundedRect(cx - boxW - 20, boxY, boxW, boxH, 16);
 
     this.add.text(cx - boxW + 10, boxY + 14, 'P1  RED TEAM (WASD)', {
-      fontSize: '14px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ef4444',
+      fontSize: '21px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ef4444',
     });
     this.add.text(cx - boxW + 10, boxY + 40, 'Starts at Bottom-Left. Collect masks\nand deliver them to your minions!', {
-      fontSize: '11px', fontFamily: 'LifeCraft', color: '#94a3b8', lineSpacing: 4,
+      fontSize: '17px', fontFamily: 'LifeCraft', color: '#94a3b8', lineSpacing: 4,
     });
 
     // Blue team box
@@ -81,50 +81,60 @@ export class IntroScene extends Phaser.Scene {
     blueGfx.strokeRoundedRect(cx + 20, boxY, boxW, boxH, 16);
 
     this.add.text(cx + 50, boxY + 14, 'P2  BLUE TEAM (ARROWS)', {
-      fontSize: '14px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#3b82f6',
+      fontSize: '21px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#3b82f6',
     });
     this.add.text(cx + 50, boxY + 40, 'Starts at Top-Right. Defend your base!\nEnemy minions at your corner = lost heart.', {
-      fontSize: '11px', fontFamily: 'LifeCraft', color: '#94a3b8', lineSpacing: 4,
+      fontSize: '17px', fontFamily: 'LifeCraft', color: '#94a3b8', lineSpacing: 4,
     });
 
     // Mask parade panel
-    const paradeY = 330;
+    const paradeY = 310;
     const panelGfx = this.add.graphics();
     panelGfx.fillStyle(0x0f172a, 0.6);
-    panelGfx.fillRoundedRect(cx - 480, paradeY, 960, 250, 24);
+    panelGfx.fillRoundedRect(cx - 480, paradeY, 960, 310, 24);
     panelGfx.lineStyle(1, 0xffffff, 0.05);
-    panelGfx.strokeRoundedRect(cx - 480, paradeY, 960, 250, 24);
+    panelGfx.strokeRoundedRect(cx - 480, paradeY, 960, 310, 24);
 
-    // Staggered mask reveals
-    const startX = cx - 400;
-    const spacing = 160;
+    // Panel title
+    const panelTitle = this.add.text(cx, paradeY + 28, 'USE THE MASKS TO YOUR ADVANTAGE', {
+      fontSize: '24px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#fbbf24',
+      letterSpacing: 4,
+    }).setOrigin(0.5).setAlpha(0);
+    this.tweens.add({ targets: panelTitle, alpha: 1, duration: 600, delay: 300 });
+
+    // Two rows of 3 masks
+    const colSpacing = 260;
+    const row1Y = paradeY + 90;
+    const row2Y = paradeY + 210;
 
     maskIntros.forEach((item, i) => {
-      const mx = startX + i * spacing;
-      const my = paradeY + 70;
+      const row = i < 3 ? 0 : 1;
+      const col = i % 3;
+      const mx = cx - colSpacing + col * colSpacing;
+      const my = row === 0 ? row1Y : row2Y;
 
       // Icon
       const icon = this.add.text(mx, my, getMaskIcon(item.type), {
-        fontSize: '40px', fontFamily: 'serif',
+        fontSize: '60px', fontFamily: 'serif',
       }).setOrigin(0.5).setAlpha(0).setScale(0.5);
 
       // Name
       const name = this.add.text(mx, my + 40, item.name, {
-        fontSize: '12px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
+        fontSize: '24px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#ffffff',
       }).setOrigin(0.5).setAlpha(0);
 
       // Nickname
-      const nickname = this.add.text(mx, my + 58, item.nickname, {
-        fontSize: '9px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#fbbf24',
+      const nickname = this.add.text(mx, my + 60, item.nickname, {
+        fontSize: '18px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#fbbf24',
         letterSpacing: 3,
       }).setOrigin(0.5).setAlpha(0);
 
       // Effect
-      const effect = this.add.text(mx, my + 80, item.effect, {
-        fontSize: '9px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#94a3b8',
+      const effect = this.add.text(mx, my + 82, item.effect, {
+        fontSize: '18px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#94a3b8',
       }).setOrigin(0.5).setAlpha(0);
 
-      const delay = i * 400;
+      const delay = i * 300;
       this.tweens.add({ targets: icon, alpha: 1, scale: 1, duration: 600, delay, ease: 'Back.easeOut' });
       this.tweens.add({ targets: [name, nickname, effect], alpha: 1, duration: 400, delay: delay + 200 });
 
@@ -136,7 +146,7 @@ export class IntroScene extends Phaser.Scene {
     });
 
     // Battle Start button
-    const btnY = 640;
+    const btnY = 660;
     const btnContainer = this.add.container(cx, btnY + 30);
 
     const btnGfx = this.add.graphics();
@@ -145,7 +155,7 @@ export class IntroScene extends Phaser.Scene {
     btnContainer.add(btnGfx);
 
     const btnText = this.add.text(0, 0, 'BATTLE START', {
-      fontSize: '28px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#0f172a',
+      fontSize: '42px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#0f172a',
     }).setOrigin(0.5);
     btnContainer.add(btnText);
 
