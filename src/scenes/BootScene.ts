@@ -27,6 +27,7 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('redTowerDestroyed', 'src/sounds/red tower has been destroyed.mp3');
     this.load.audio('redWins', 'src/sounds/red wins.mp3');
     this.load.audio('battleBegins', 'src/sounds/the battle begins.mp3');
+    this.load.audio('statsBlabber', 'src/sounds/statistics screen blabber.mp3');
   }
 
   create() {

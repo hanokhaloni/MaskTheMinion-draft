@@ -28,8 +28,8 @@ export class IntroScene extends Phaser.Scene {
     }
 
     // Title
-    const title = this.add.text(cx, 70, 'MASK THE MINION', {
-      fontSize: '96px',
+    const title = this.add.text(cx, 95, 'MASK THE MINION', {
+      fontSize: '114px',
       fontFamily: 'LifeCraft',
       fontStyle: 'bold italic',
       color: '#ffffff',
@@ -38,14 +38,14 @@ export class IntroScene extends Phaser.Scene {
     this.tweens.add({ targets: title, alpha: 1, y: 80, duration: 700, ease: 'Back.easeOut' });
 
     // Mask emoji top-right of title
-    const maskEmoji = this.add.text(cx + 300, 40, '\uD83C\uDFAD', {
+    const maskEmoji = this.add.text(cx + 520, 50, '\uD83C\uDFAD', {
       fontSize: '72px',
     }).setOrigin(0.5).setAngle(12);
     this.tweens.add({ targets: maskEmoji, alpha: { from: 0.6, to: 1 }, duration: 1200, yoyo: true, repeat: -1 });
 
     // Subtitle
-    const subtitle = this.add.text(cx, 140, 'HEROES OF THE MOBA LEAGUE OF MASKS', {
-      fontSize: '24px',
+    const subtitle = this.add.text(cx, 160, 'HEROES OF THE MOBA LEAGUE OF MASKS', {
+      fontSize: '26px',
       fontFamily: 'LifeCraft',
       fontStyle: 'bold',
       color: '#94a3b8',
@@ -150,12 +150,12 @@ export class IntroScene extends Phaser.Scene {
     const btnContainer = this.add.container(cx, btnY + 30);
 
     const btnGfx = this.add.graphics();
-    btnGfx.fillStyle(0xffffff, 1);
+    btnGfx.fillStyle(0x550055, 1);
     btnGfx.fillRoundedRect(-160, -30, 320, 60, 30);
     btnContainer.add(btnGfx);
 
     const btnText = this.add.text(0, 0, 'BATTLE START', {
-      fontSize: '42px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#0f172a',
+      fontSize: '38px', fontFamily: 'LifeCraft', fontStyle: 'bold', color: '#fbbf24',
     }).setOrigin(0.5);
     btnContainer.add(btnText);
 
