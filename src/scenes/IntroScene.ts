@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { MaskType, getMaskIcon } from '../types';
+import { createCloudShader } from '../shaders/cloudShader';
 
 const maskIntros = [
   { type: MaskType.CONVERT_FIGHTER, name: 'THE BRAWLER', nickname: '"VANGUARD"', effect: 'TRANSFORMS TO FIGHTER' },
@@ -20,6 +21,11 @@ export class IntroScene extends Phaser.Scene {
 
     // Background
     this.cameras.main.setBackgroundColor('#020617');
+
+    if (this.renderer.type === Phaser.WEBGL) {
+      const shaderBg = this.add.shader(createCloudShader(), 600, 400, 1200, 800);
+      shaderBg.setDepth(-1);
+    }
 
     // Title
     const title = this.add.text(cx, 70, 'MASK THE MINION', {
@@ -153,7 +159,11 @@ export class IntroScene extends Phaser.Scene {
       this.tweens.add({ targets: btnContainer, scaleX: 1, scaleY: 1, duration: 150 });
     });
     btnZone.on('pointerdown', () => {
-      this.scene.start('PlayScene');
+      btnZone.disableInteractive();
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('PlayScene');
+      });
     });
 
     // Button appear animation

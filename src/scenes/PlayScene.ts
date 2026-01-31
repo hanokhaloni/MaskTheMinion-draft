@@ -28,7 +28,7 @@ export class PlayScene extends Phaser.Scene {
 
     // Create heroes
     const redHero = new Hero(this, 80, CANVAS_HEIGHT - 80, 'Red');
-    const blueHero = new Hero(this, CANVAS_WIDTH - 80, 80, 'Blue');
+    const blueHero = new Hero(this, CANVAS_WIDTH - 90, 160, 'Blue');
     this.engine.heroes.push(redHero);
     this.engine.heroes.push(blueHero);
 
@@ -55,6 +55,10 @@ export class PlayScene extends Phaser.Scene {
 
     // Set camera world bounds so camera won't scroll outside the game world when zoomed in
     this.cameras.main.setBounds(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Fade in + zoom from close-up
+    this.cameras.main.fadeIn(600, 0, 0, 0);
+    this.cameras.main.zoom = 3.0;
 
     // Launch HUD overlay scene
     this.scene.launch('HudScene', { engine: this.engine });
