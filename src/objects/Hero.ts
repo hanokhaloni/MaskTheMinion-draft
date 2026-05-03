@@ -11,7 +11,7 @@ const RED_TINT = 0xff9999;
 const BLUE_TINT = 0x9999ff;
 
 export class Hero extends Phaser.GameObjects.Container {
-  public speed = 3.2;
+  public speed = 2.2;
   public currentMask: MaskType | null = null;
   public side: 'Blue' | 'Red';
   public radius = 22;
